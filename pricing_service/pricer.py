@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from instrument import Instrument
 from database_connector.db_connector import DBConnector
+from core.instrument import Instrument
 
 
 class BasePricer(ABC):

@@ -2,7 +2,6 @@ from datetime import datetime
 
 
 class InstrumentPrice:
-    """InstrumentPrice blueprint"""
     def __init__(
             self,
             price: float = None,

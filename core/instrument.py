@@ -2,7 +2,6 @@ from core.instrument_price import InstrumentPrice
 
 
 class Instrument:
-    """Instrument blueprint"""
     def __init__(
             self,
             instrument_id=None,

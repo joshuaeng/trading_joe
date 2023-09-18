@@ -1,9 +1,7 @@
 from enum import Enum
 import pymysql as sql
 from database_connector import config
-from typing import Callable
 import logging
-from functools import wraps
 
 
 class ConnectorState(Enum):

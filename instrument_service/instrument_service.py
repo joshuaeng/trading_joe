@@ -82,6 +82,9 @@ class InstrumentService:
 
             self._persist_instrument(instrument)
 
+    def delete_instrument(self):
+        pass
+
 
 
 

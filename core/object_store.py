@@ -1,22 +1,41 @@
 from typing import Union
 from datetime import datetime
 from sqlalchemy.orm import Mapped, mapped_column
-from core.database_connector.db_connector import base
+from core.database_service.db_connector import base
+from abc import ABC
 
 
-class InstrumentPrice:
-    def __init__(
-            self,
-            price: float = None,
-            date: datetime = None
-    ):
+class Named(ABC):
+    def __init__(self, name: str):
+        self._name = name
 
-        self.price = price
+    def get_name(self):
+        return self._name
 
-        self.date = date
+    def __repr__(self):
+        return self._name
 
 
-class Instrument(base):
+class InstrumentPrice(Named):
+    def __init__(self, name: str, price: float = None, date: datetime = None):
+
+        super().__init__(name)
+
+        self._price = price
+
+        self._date = date
+
+    def get_price(self):
+        return self._price
+
+    def get_date(self):
+        return self._date
+
+    def __repr__(self):
+        return
+
+
+class Instrument(base, Named):
 
     __tablename__ = "instruments"
 
@@ -26,11 +45,9 @@ class Instrument(base):
 
     def __init__(self, instrument_id=None, name=None, price=None):
 
-        super().__init__()
+        super().__init__(name)
 
         self.instrument_id: str = instrument_id
-
-        self.name: str = name
 
         self.price: InstrumentPrice = price
 
@@ -50,12 +67,10 @@ class Instrument(base):
         return self.instrument_id
 
 
+class PortfolioComponent(Named):
+    def __init__(self, instrument: Instrument, quantity: int, name: str):
 
-
-
-
-class PortfolioComponent:
-    def __init__(self, instrument: Instrument, quantity: int):
+        super().__init__(name)
 
         self.instrument: Instrument = instrument
 
@@ -65,44 +80,21 @@ class PortfolioComponent:
         return {self.instrument.name: self.quantity}
 
 
-class Portfolio:
-    def __init__(
-            self,
-            portfolio_id: str = None,
-            composition=None
-    ):
-        self.portfolio_id: str = portfolio_id
+class Portfolio(Named):
+    def __init__(self, name: str, portfolio_id: str = None, composition=None):
 
-        self.composition: list[PortfolioComponent] \
+        super().__init__(name)
+
+        self._portfolio_id: str = portfolio_id
+
+        self._composition: list[PortfolioComponent] \
             = [] if composition is None else composition
 
-        self.value: Union[None, float] \
-            = self._calculate_value()
-
-    def add_instrument(self, instrument_to_add: Instrument, quantity: int):
-        self.composition.append(
-
-            PortfolioComponent(
-
-                instrument=instrument_to_add,
-
-                quantity=quantity
-
-            )
-
-        )
-
-    def _calculate_value(self):
-        value = 0
-
-        for component in self.composition:
-
-            value += component.instrument.price.price * component.quantity
-
-        return value
+    def get_portfolio_id(self) -> str:
+        return self._portfolio_id
 
     def get_composition(self) -> list[PortfolioComponent]:
-        return self.composition
+        return self._composition
 
 
 

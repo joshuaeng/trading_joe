@@ -1,9 +1,9 @@
-from core.database_connector.db_connector import DBConnector
+from core.database_service.db_connector import DBConnector
 from core.object_store import Instrument
 from sqlalchemy import select
 
 
-class NotAnInstrument(Exception):
+class _NotAnInstrument(Exception):
     def __init__(self, message: str):
         self.message = message
 
@@ -45,10 +45,12 @@ class InstrumentService:
 
         if not isinstance(instrument, Instrument):
 
-            raise NotAnInstrument(f"{instrument} is not an object of type Instrument.")
+            raise _NotAnInstrument(f"{instrument} is not an object of type Instrument.")
 
         with self.dbc.orm_session() as session, session.begin():
 
             session.add(instrument)
 
             session.commit()
+
+

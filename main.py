@@ -1,4 +1,4 @@
-from instrument_service.instrument_service import InstrumentService
+from service.instrument_service.instrument_service import InstrumentService
 
 instrument_service = InstrumentService()
 

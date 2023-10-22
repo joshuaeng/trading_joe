@@ -1,5 +1,5 @@
 from core.portfolio import Portfolio, PortfolioComponent
-from core.database_connector.db_connector import DBConnector
+from core.database_service.db_connector import DBConnector
 
 
 class PortfolioService:

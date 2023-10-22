@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from core.database_connector.db_connector import DBConnector
+from core.database_service.db_connector import DBConnector
 from core.instrument import Instrument
 
 
@@ -32,7 +32,9 @@ class EquityPricer(BasePricer):
         self.vol \
             = None
 
+        self.anything = None
+
     def pricing_model(self):
-        pass
+        return self.vol + self.anything
 
 

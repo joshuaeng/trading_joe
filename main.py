@@ -1,14 +1,17 @@
-from core.instrument import Instrument
 from instrument_service.instrument_service import InstrumentService
 
-instrument = Instrument(
-    instrument_id="instrument_3",
-    name="test_instrument"
-)
+instrument_service = InstrumentService()
 
-_is = InstrumentService()
+instrument_retreived = instrument_service.get_instrument(instrument_id="test_new")
 
-instrument_inst = _is.get_instrument([instrument.instrument_id])
+instrument_retreived.price = 1555
+
+instrument_service.persist_instrument(instrument_retreived)
+
+print("t")
+
+
+
 
 
 

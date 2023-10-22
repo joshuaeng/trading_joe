@@ -1,5 +1,5 @@
 from core.portfolio import Portfolio, PortfolioComponent
-from database_connector.db_connector import DBConnector
+from core.database_connector.db_connector import DBConnector
 
 
 class PortfolioService:
@@ -7,16 +7,28 @@ class PortfolioService:
         self.dbc = DBConnector()
 
     @staticmethod
-    def new_portfolio(composition: list[PortfolioComponent]):
+    def new_portfolio(portfolio_id: str, composition: list[PortfolioComponent]):
 
         return Portfolio(
+
+            portfolio_id=portfolio_id,
 
             composition=composition
 
         )
 
-    def charge_portfolio(self):
-        pass
+    def charge_portfolio(self, portfolio_id: str):
+        portfolio_data \
+            = self.dbc.query(
+                query=f"SELECT * "
+                      f"FROM trading_joe.portfolio "
+                      f"WHERE portfolio_id = {portfolio_id}"
+            )
+
+        return Portfolio(
+            portfolio_id=portfolio_id,
+
+        )
 
     def persist_portfolio(self):
         pass

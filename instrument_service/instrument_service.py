@@ -1,5 +1,14 @@
-from database_connector.db_connector import DBConnector
-from core.instrument import Instrument
+from core.database_connector.db_connector import DBConnector
+from core.object_store import Instrument
+from sqlalchemy import select
+
+
+class NotAnInstrument(Exception):
+    def __init__(self, message: str):
+        self.message = message
+
+    def __str__(self):
+        return self.message
 
 
 class InstrumentService:
@@ -18,78 +27,28 @@ class InstrumentService:
             name=name
         )
 
-    def _get_instrument(self, instrument_id: str) \
-            -> Instrument:
+    def get_instrument(self, instrument_id: str) -> Instrument:
 
-        instrument_data = self.dbc.query(
+        with self.dbc.orm_session() as session, session.begin():
 
-            f"SELECT * "
+            instrument = session.scalars(
+                statement=select(Instrument).filter_by(
+                    instrument_id=instrument_id
+                    )
+            ).all()[0]
 
-            f"FROM trading_joe.instruments "
+            session.expunge(instrument)
 
-            f"WHERE instrument_id = '{instrument_id}'"
+        return instrument
 
-        )
+    def persist_instrument(self, instrument: Instrument):
 
-        return Instrument(
+        if not isinstance(instrument, Instrument):
 
-            instrument_id=instrument_id,
+            raise NotAnInstrument(f"{instrument} is not an object of type Instrument.")
 
-            name=instrument_data[0]["name"]
+        with self.dbc.orm_session() as session, session.begin():
 
-        )
+            session.add(instrument)
 
-    def _persist_instrument(self, instrument: Instrument) \
-            -> None:
-
-        self.dbc.query(
-            f"INSERT INTO trading_joe.instruments ("
-
-            f"instrument_id, "
-            f"name"
-
-            f") "
-
-            f"VALUES("
-
-            f"'{None if instrument.instrument_id is None else instrument.instrument_id}', "
-            f"'{None if instrument.name is None else instrument.name}'"
-
-            f")"
-        )
-
-    def get_instrument(self, instrument_ids: list) \
-            -> dict[str, Instrument]:
-
-        instruments = dict()
-
-        for instrument_id in instrument_ids:
-
-            instruments.update(
-
-                {
-                    instrument_id: self._get_instrument(instrument_id)
-                }
-
-            )
-
-            return instruments
-
-    def persist_instruments(self, instruments: list) \
-            -> None:
-
-        for instrument in instruments:
-
-            self._persist_instrument(instrument)
-
-    def delete_instrument(self):
-        pass
-
-
-
-
-
-
-
-
-
+            session.commit()

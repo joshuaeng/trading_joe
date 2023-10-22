@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from database_connector.db_connector import DBConnector
+from core.database_connector.db_connector import DBConnector
 from core.instrument import Instrument
 
 

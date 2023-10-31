@@ -1,6 +1,5 @@
 from core.database_service.db_connector import DBConnector
 from core.object_store import Instrument
-from sqlalchemy import select
 
 
 class _NotAnInstrument(Exception):
@@ -29,28 +28,15 @@ class InstrumentService:
 
     def get_instrument(self, instrument_id: str) -> Instrument:
 
-        with self.dbc.orm_session() as session, session.begin():
+        return self.dbc.get_object(
+            object_type=Instrument,
+            object_primary_key=instrument_id
+        )
 
-            instrument = session.scalars(
-                statement=select(Instrument).filter_by(
-                    instrument_id=instrument_id
-                    )
-            ).all()[0]
+    def persist_instrument(self, instrument: Instrument) -> None:
 
-            session.expunge(instrument)
+        return self.dbc.persist_object(obj=instrument)
 
-        return instrument
 
-    def persist_instrument(self, instrument: Instrument):
-
-        if not isinstance(instrument, Instrument):
-
-            raise _NotAnInstrument(f"{instrument} is not an object of type Instrument.")
-
-        with self.dbc.orm_session() as session, session.begin():
-
-            session.add(instrument)
-
-            session.commit()
 
 

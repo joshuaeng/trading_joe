@@ -1,64 +1,31 @@
-from typing import Union
 from datetime import datetime
 from sqlalchemy.orm import Mapped, mapped_column
-from core.database_service.db_connector import base
-from abc import ABC
+from core.database_service.db_connector import Base
 
 
-class Named(ABC):
-    def __init__(self, name: str):
-        self._name = name
-
-    def get_name(self):
-        return self._name
-
-    def __repr__(self):
-        return self._name
-
-
-class InstrumentPrice(Named):
-    def __init__(self, name: str, price: float = None, date: datetime = None):
-
-        super().__init__(name)
-
-        self._price = price
-
-        self._date = date
-
-    def get_price(self):
-        return self._price
-
-    def get_date(self):
-        return self._date
-
-    def __repr__(self):
-        return
-
-
-class Instrument(base, Named):
+class Instrument(Base):
 
     __tablename__ = "instruments"
 
     instrument_id: Mapped[str] = mapped_column(primary_key=True)
+
     name: Mapped[str] = mapped_column()
+
     price: Mapped[float] = mapped_column()
 
-    def __init__(self, instrument_id=None, name=None, price=None):
+    def __init__(self, instrument_id: str, name: str):
 
-        super().__init__(name)
+        super().__init__()
 
-        self.instrument_id: str = instrument_id
+        self._instrument_id: str = instrument_id
 
-        self.price: InstrumentPrice = price
+        self._name = name
 
     def get_instrument_id(self) -> str:
-        return self.instrument_id
+        return self._instrument_id
 
     def get_instrument_name(self) -> str:
-        return self.name
-
-    def get_price(self) -> Union[None, InstrumentPrice]:
-        return self.price
+        return self._name
 
     def __repr__(self):
         return f"INSTRUMENT('{self.instrument_id}')"
@@ -67,34 +34,98 @@ class Instrument(base, Named):
         return self.instrument_id
 
 
-class PortfolioComponent(Named):
-    def __init__(self, instrument: Instrument, quantity: int, name: str):
+class InstrumentPrice(Base):
 
-        super().__init__(name)
+    __tablename__ = "instrument_price"
 
-        self.instrument: Instrument = instrument
+    nb_line: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
 
-        self.quantity: int = quantity
+    instrument_id: Mapped[str] = mapped_column()
 
-    def __repr__(self):
-        return {self.instrument.name: self.quantity}
+    date: Mapped[datetime] = mapped_column()
+
+    price: Mapped[float] = mapped_column()
+
+    def __init__(self, instrument_id: str, price: float = None, date: datetime = None):
+
+        super().__init__()
+
+        self._instrument_id = instrument_id
+
+        self._price = price
+
+        self._date = date
+
+    def get_instrument_id(self):
+        return self._instrument_id
+
+    def get_price(self):
+        return self._price
+
+    def get_date(self):
+        return self._date
 
 
-class Portfolio(Named):
-    def __init__(self, name: str, portfolio_id: str = None, composition=None):
+class Position(Base):
 
-        super().__init__(name)
+    __tablename__ = "position"
+
+    line_nb: Mapped[float] = mapped_column(primary_key=True, autoincrement=True)
+
+    portfolio_id: Mapped[str] = mapped_column()
+
+    instrument: Mapped[str] = mapped_column()
+
+    quantity: Mapped[int] = mapped_column()
+
+    def __init__(
+            self,
+            portfolio_id: str = None,
+            instrument_id: str = None,
+            quantity: int = None
+    ):
+
+        super().__init__()
 
         self._portfolio_id: str = portfolio_id
 
-        self._composition: list[PortfolioComponent] \
-            = [] if composition is None else composition
+        self._instrument_id = instrument_id
 
-    def get_portfolio_id(self) -> str:
+        self._quantity = quantity
+
+
+class Portfolio(Base):
+
+    __tablename__ = "portfolio"
+
+    portfolio_id: Mapped[str] = mapped_column(primary_key=True)
+
+    name: Mapped[str] = mapped_column()
+
+    def __init__(self, portfolio_id: str, name: str):
+
+        super().__init__()
+
+        self._portfolio_id = portfolio_id
+
+        self._name = name
+
+        self.composition: list[Position] = []
+
+    def get_portfolio_id(self):
         return self._portfolio_id
 
-    def get_composition(self) -> list[PortfolioComponent]:
-        return self._composition
+    def get_name(self):
+        return self._name
+
+    def get_composition(self):
+        return self.composition
+
+    def add_positions(self, positions: list[Position]):
+        self.composition.extend(positions)
+
+
+
 
 
 

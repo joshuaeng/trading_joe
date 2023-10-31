@@ -1,38 +1,37 @@
-from core.portfolio import Portfolio, PortfolioComponent
+from core.object_store import Position, Portfolio
 from core.database_service.db_connector import DBConnector
 
 
 class PortfolioService:
     def __init__(self):
+
         self.dbc = DBConnector()
 
     @staticmethod
-    def new_portfolio(portfolio_id: str, composition: list[PortfolioComponent]):
+    def create_portfolio(
+            portfolio_id: str,
+            name: str,
+            positions: list[Position] = None
+            ) -> Portfolio:
 
-        return Portfolio(
-
+        ptf = Portfolio(
             portfolio_id=portfolio_id,
-
-            composition=composition
-
+            name=name
         )
 
-    def charge_portfolio(self, portfolio_id: str):
-        portfolio_data \
-            = self.dbc.query(
-                query=f"SELECT * "
-                      f"FROM trading_joe.portfolio "
-                      f"WHERE portfolio_id = {portfolio_id}"
-            )
+        ptf.add_positions(positions)
 
-        return Portfolio(
-            portfolio_id=portfolio_id,
+        return ptf
 
+    def persist_portfolio(self, position_list: list[Position]) -> None:
+        pass
+
+    def get_portfolio(self, portfolio_id):
+        return self.dbc.get_object(
+            object_type=Portfolio,
+            object_primary_key=portfolio_id
         )
 
-    def persist_portfolio(self):
-        pass
 
-    def delete_portfolio(self):
-        pass
+
 

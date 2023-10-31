@@ -35,7 +35,7 @@ class InstrumentService:
 
     def persist_instrument(self, instrument: Instrument) -> None:
 
-        return self.dbc.persist_object(obj=instrument)
+        self.dbc.persist_object(obj=instrument)
 
 
 

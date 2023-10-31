@@ -23,8 +23,9 @@ class PortfolioService:
 
         return ptf
 
-    def persist_portfolio(self, position_list: list[Position]) -> None:
-        pass
+    def persist_portfolio(self, portfolio: Portfolio) -> None:
+
+        self.dbc.persist_object(portfolio)
 
     def get_portfolio(self, portfolio_id):
         return self.dbc.get_object(

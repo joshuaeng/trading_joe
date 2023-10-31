@@ -4,6 +4,9 @@ from core.database_service.db_connector import Base
 
 
 class Instrument(Base):
+    """Instrument :class:
+
+    """
 
     __tablename__ = "instruments"
 
@@ -16,9 +19,7 @@ class Instrument(Base):
     def __init__(self, instrument_id: str, name: str):
 
         super().__init__()
-
         self._instrument_id: str = instrument_id
-
         self._name = name
 
     def get_instrument_id(self) -> str:
@@ -49,11 +50,8 @@ class InstrumentPrice(Base):
     def __init__(self, instrument_id: str, price: float = None, date: datetime = None):
 
         super().__init__()
-
         self._instrument_id = instrument_id
-
         self._price = price
-
         self._date = date
 
     def get_instrument_id(self):
@@ -86,11 +84,8 @@ class Position(Base):
     ):
 
         super().__init__()
-
         self._portfolio_id: str = portfolio_id
-
         self._instrument_id = instrument_id
-
         self._quantity = quantity
 
 
@@ -105,11 +100,8 @@ class Portfolio(Base):
     def __init__(self, portfolio_id: str, name: str):
 
         super().__init__()
-
         self._portfolio_id = portfolio_id
-
         self._name = name
-
         self.composition: list[Position] = []
 
     def get_portfolio_id(self):

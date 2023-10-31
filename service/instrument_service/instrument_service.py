@@ -33,9 +33,17 @@ class InstrumentService:
             object_primary_key=instrument_id
         )
 
+    def get_all_instruments(self):
+        return self.dbc.get_all(
+            object_type=Instrument
+        )
+
     def persist_instrument(self, instrument: Instrument) -> None:
 
-        self.dbc.persist_object(obj=instrument)
+        self.dbc.persist_object(
+            obj=instrument
+        )
+
 
 
 

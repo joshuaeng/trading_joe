@@ -1,7 +1,7 @@
 from core.database_service import config
 import sqlalchemy
 from sqlalchemy.orm import Session, DeclarativeBase
-from typing import Type
+from typing import Type, Any
 
 
 class Base(DeclarativeBase):
@@ -34,7 +34,7 @@ class DBConnector:
             bind=self.engine
         )
 
-    def get_object(self, object_type: Type[Base], object_primary_key: str):
+    def get_object(self, object_type: Type[Base], object_primary_key: str) -> Any:
 
         with self._orm_session as session, session.begin():
 
@@ -44,15 +44,25 @@ class DBConnector:
 
         return obj
 
-    def persist_object(self, obj: Base):
+    def get_all(self, object_type: Type[Base]):
+
+        with self._orm_session as session, session.begin():
+
+            obj_list = session.query(object_type).all()
+
+            for obj in obj_list:
+
+                session.expunge(obj)
+
+        return obj_list
+
+    def persist_object(self, obj: Base) -> None:
 
         with self._orm_session as session, session.begin():
 
             session.add(obj)
 
             session.commit()
-
-        return obj
 
 
 

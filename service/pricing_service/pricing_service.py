@@ -4,14 +4,12 @@ from abc import ABC, abstractmethod
 
 
 class Pricer(ABC):
-
     @abstractmethod
     def price(self, instrument: Instrument):
         pass
 
 
 class EquityInstrumentPricer(Pricer):
-
     def __init__(self):
         pass
 
@@ -20,11 +18,9 @@ class EquityInstrumentPricer(Pricer):
 
 
 class PricingService:
-
     pricer: Pricer
 
     def __init__(self):
-
         self.dbc = DBConnector()
 
     def set_pricer(self, pricer: Pricer):

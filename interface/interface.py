@@ -1,4 +1,3 @@
-
 def show_security_list():
     pass
 
@@ -21,5 +20,3 @@ def define_active_portfolio():
 
 def show_portfolio_content():
     pass
-
-

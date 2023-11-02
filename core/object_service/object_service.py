@@ -1,16 +1,18 @@
 from sqlalchemy.orm import DeclarativeBase
 from core.database_service.db_connector import DBConnector
-from typing import Type, Any
-from datetime import datetime
+from typing import Type, Any, Callable
 from sqlalchemy import ForeignKey, Column, String, Integer, Float, Date
+from dataclasses import dataclass
 
 
 class _Base(DeclarativeBase):
+
     @property
     def fields(self):
-        return [
-            key for key in self.__dict__.keys()
-        ]
+        return [key for key in self.__class__.__dict__.keys() if not key.startswith("_")]
+
+    def __repr__(self):
+        return f"OBJECT('{self.__class__.__name__}')"
 
 
 class ObjectService:
@@ -18,118 +20,90 @@ class ObjectService:
 
         self.dbc = DBConnector()
 
-    def get_object(self,
-                   object_type: Type[_Base],
-                   object_primary_key: str
-                   ) -> Any:
+    @staticmethod
+    def update_object(obj: _Base, **kwargs) -> _Base:
 
-        with self.dbc.orm_session as session, session.begin():
-            obj = session.get(object_type, object_primary_key)
+        for element in kwargs:
 
-            session.expunge(obj)
+            if element not in obj.fields:
+                raise Exception(
+                    f"'{element.capitalize()}' is not an attribute of {obj.__class__.__name__}. "
+                    f"Attributes of {obj.__class__.__name__} are: {obj.fields}"
+                )
+
+        obj.__dict__.update(**kwargs)
 
         return obj
 
-    def get_list(self, object_type: Type[_Base]):
+    def create_object(self, constructor: Callable, **kwargs) -> _Base:
+        return self.update_object(constructor(), **kwargs)
 
-        with self.dbc.orm_session as session, session.begin():
-            obj_list = session.query(object_type).all()
+    def get_object(self, object_type: Type[_Base], object_primary_key: str) -> Any:
+        return self.dbc.orm_session.get(object_type, object_primary_key)
 
-            for obj in obj_list:
-                session.expunge(obj)
-
-        return obj_list
+    def get_list(self, object_type: Type[_Base]) -> list[Any]:
+        return self.dbc.orm_session.query(object_type).all()
 
     def persist(self, obj_list: list[_Base]) -> None:
-
-        with self.dbc.orm_session as session, session.begin():
-            for obj in obj_list:
-                session.add(obj)
-
-            session.commit()
+        for obj in obj_list:
+            self.dbc.orm_session.add(obj)
 
     def delete(self, obj_list: list[_Base]) -> None:
-
-        with self.dbc.orm_session as session, session.begin():
-            for obj in obj_list:
-                session.delete(obj)
-
-            session.commit()
+        for obj in obj_list:
+            self.dbc.orm_session.delete(obj)
 
     def delete_by_object_id(self, id_list: list, object_type: Type[_Base]) -> None:
-
-        with self.dbc.orm_session as session, session.begin():
-            for object_id in id_list:
-                obj = session.get(object_type, object_id)
-                session.delete(obj)
-
-            session.commit()
+        for object_id in id_list:
+            obj = self.dbc.orm_session.get(object_type, object_id)
+            self.dbc.orm_session.delete(obj)
 
 
+@dataclass
 class Instrument(_Base):
 
     __tablename__ = "instruments"
-    instrument_id = Column("instrument_id", String, primary_key=True, )
+
+    instrument_id = Column("instrument_id", String, primary_key=True)
+
     name = Column("name", String)
+
     price = Column("price", Float)
 
-    def __init__(self, instrument_id: str, name: str):
 
-        super().__init__()
-        self.instrument_id: str = instrument_id
-        self.name = name
-        self.price = None
-
-
+@dataclass
 class InstrumentPrice(_Base):
 
     __tablename__ = "instrument_price"
+
     id = Column(primary_key=True, autoincrement=True)
+
     instrument_id = Column(String, ForeignKey("instruments.instrument_id"))
+
     date = Column("date", Date)
+
     price = Column("price", Float)
 
-    def __init__(self, instrument_id: str, price: float = None, date: datetime = None):
 
-        super().__init__()
-        self.instrument_id = instrument_id
-        self.price = price
-        self.date = date
-
-
+@dataclass
 class Position(_Base):
 
     __tablename__ = "position"
+
     id = Column(primary_key=True, autoincrement=True)
+
     portfolio_id = Column(String, ForeignKey("portfolio.portfolio_id"))
+
     instrument_id = Column(String, ForeignKey("instruments.instrument_id"))
+
     quantity = Column("quantity", Integer)
 
-    def __init__(
-            self,
-            portfolio_id: str = None,
-            instrument_id: str = None,
-            quantity: int = None
-    ):
 
-        super().__init__()
-        self._portfolio_id: str = portfolio_id
-        self._instrument_id = instrument_id
-        self._quantity = quantity
-
-
+@dataclass
 class Portfolio(_Base):
 
     __tablename__ = "portfolio"
+
     portfolio_id = Column("portfolio_id", String, primary_key=True)
+
     name = Column("name", String)
-
-    def __init__(self, portfolio_id: str, name: str):
-
-        super().__init__()
-        self.portfolio_id = portfolio_id
-        self.name = name
-
-
-
 

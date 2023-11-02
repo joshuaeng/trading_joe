@@ -1,6 +1,14 @@
 from core.database_service import config
 import sqlalchemy
 from sqlalchemy.orm import sessionmaker
+from enum import Enum
+
+
+class ConnectionStatus(Enum):
+
+    CONNECTED = 1
+
+    DISCONNECTED = 2
 
 
 class DBConnector:
@@ -15,6 +23,18 @@ class DBConnector:
             f"mysql+mysqlconnector://{self._user}:{self._password}@{self._host}/trading_joe"
         )
 
+        self.orm_session = None
+
+        self.connection_status = ConnectionStatus.DISCONNECTED
+
+    def connect(self):
+
         session = sessionmaker(bind=self.engine)
 
         self.orm_session = session()
+
+        self.connection_status = ConnectionStatus.CONNECTED
+
+
+
+

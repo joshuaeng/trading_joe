@@ -1,12 +1,10 @@
-from service.instrument_service.instrument_service import InstrumentService
+from core.object_service.object_service import ObjectService, Instrument
 
-instrument_service = InstrumentService()
+object_service = ObjectService()
 
-instruments = instrument_service.get_all_instruments()
+instrument_list = object_service.get_list(Instrument)
 
-
-
-
+inst = instrument_list[0]
 
 
 

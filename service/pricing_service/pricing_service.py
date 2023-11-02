@@ -1,5 +1,5 @@
 from core.database_service.db_connector import DBConnector
-from core.object_store import Instrument, InstrumentPrice
+from core.object_service.object_service import Instrument, InstrumentPrice
 from abc import ABC, abstractmethod
 
 

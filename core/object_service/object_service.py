@@ -1,39 +1,41 @@
 from core.database_service.db_connector import DBConnector
 from sqlalchemy import or_, and_
 from core.object_store.object_store import Instrument, Position, Portfolio, BaseObject
+from dataclasses import dataclass
 
 
-ObjectList = [Instrument, Position, Portfolio]
+@dataclass
+class Options:
 
-ObjectMap = {
-    _object.__tablename__.upper(): _object for _object in ObjectList
-}
+    __ObjectList__ = [Instrument, Position, Portfolio]
 
-QueryOperators = [or_, and_]
+    ObjectMap = {_object.__tablename__.upper(): _object for _object in __ObjectList__}
+
+    QueryOperators = [or_, and_]
 
 
 class ObjectService:
     def __init__(self):
         self.dbc = DBConnector()
+        self.options = Options()
 
-    @staticmethod
-    def create_object(object_type: str) -> BaseObject:
-        cls = ObjectMap[object_type]
+    def create_object(self, object_type: str) -> BaseObject:
+        cls = self.options.ObjectMap[object_type]
 
         return cls()
 
     def get_object(self, object_type: str, object_primary_key: str) -> BaseObject:
-        cls = ObjectMap[object_type]
+        cls = self.options.ObjectMap[object_type]
 
         return self.dbc.orm_session.get(cls, object_primary_key)
 
     def get_list(self, object_type: str) -> list[BaseObject]:
-        cls = ObjectMap[object_type]
+        cls = self.options.ObjectMap[object_type]
 
         return self.dbc.orm_session.query(cls).all()
 
     def get_list_filter(self, object_type: str, filter_expression) -> list[BaseObject]:
-        cls = ObjectMap[object_type]
+        cls = self.options.ObjectMap[object_type]
 
         return self.dbc.orm_session.query(cls).filter(filter_expression)
 

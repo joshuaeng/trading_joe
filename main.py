@@ -1,8 +1,8 @@
-from core.object_service.object_service import ObjectService
+from core.object_service.object_service import RemoteObjectService, create_object
 
-with ObjectService() as object_service:
+with RemoteObjectService() as object_service:
 
-    instrument = object_service.create_object("INSTRUMENT")
+    instrument = create_object("INSTRUMENT")
 
     x = object_service.get_list("INSTRUMENT")
 
@@ -13,3 +13,5 @@ with ObjectService() as object_service:
     position = object_service.create_object("POSITION")
 
     object_service.persist([position])
+
+

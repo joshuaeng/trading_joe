@@ -76,3 +76,4 @@ class Portfolio(BaseObject):
     id = Column("id", Integer, primary_key=True, autoincrement=True)
 
     name = Column("name", String)
+

@@ -1,5 +1,4 @@
 from core.database_service.db_connector import DBConnector
-from typing import Type, Any
 from sqlalchemy import or_, and_
 from core.object_store.object_store import Instrument, Position, Portfolio, BaseObject
 
@@ -16,16 +15,6 @@ QueryOperators = [or_, and_]
 class ObjectService:
     def __init__(self):
         self.dbc = DBConnector()
-
-    def __enter__(self):
-        self.dbc.connect()
-
-        return self
-
-    def __exit__(self, *args, **kwargs):
-        self.dbc.orm_session.commit()
-
-        self.dbc.orm_session.close()
 
     @staticmethod
     def create_object(object_type: str) -> BaseObject:
@@ -63,4 +52,14 @@ class ObjectService:
             obj = self.dbc.orm_session.get(object_type, object_id)
 
             self.dbc.orm_session.delete(obj)
+
+    def __enter__(self):
+        self.dbc.connect()
+
+        return self
+
+    def __exit__(self, *args, **kwargs) -> None:
+        self.dbc.commit()
+
+        self.dbc.close()
 

@@ -4,6 +4,8 @@ with ObjectService() as object_service:
 
     instrument = object_service.create_object("INSTRUMENT")
 
+    x = object_service.get_list("INSTRUMENT")
+
     instrument.set_attribute(id=1)
 
     portfolio = object_service.create_object("PORTFOLIO")

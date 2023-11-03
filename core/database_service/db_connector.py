@@ -35,6 +35,16 @@ class DBConnector:
 
         self.connection_status = ConnectionStatus.CONNECTED
 
+    def close(self):
+
+        self.orm_session.close()
+
+        self.connection_status = ConnectionStatus.DISCONNECTED
+
+    def commit(self):
+
+        self.orm_session.commit()
+
 
 
 

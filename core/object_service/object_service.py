@@ -1,7 +1,4 @@
-from typing import Type
-
 from core.database_service.db_connector import DBConnector
-from loguru import logger
 
 from core.data_object_store.data_object_store import \
     Instrument, \
@@ -22,56 +19,92 @@ class RemoteObjectService:
         """Allows to instanciate an object of type RemoteObjectService.
 
         The object is used to fetch core object data from the database and parse them into corre objects.
-
-        Example:
-
-            with RemoteObjectService() as object_service:
-
-                user_1 = create_object("USER")
-
-                broker = create_object("BROKER")
-
-                portfolio = create_object("PORTFOLIO")
-
-                trading_session = create_object("TRADING_SESSION")
-
-                user_1.set_attribute(...)
         """
         self.dbc: DBConnector = DBConnector()
 
     def get_object(self, object_type: str, object_primary_key) -> BaseDataObject:
-        """Gets object from database."""
+        """Gets object from database.
+
+        Args:
+            object_type: type of the object to get from db.
+            object_primary_key: primary key of the object to get from db.
+
+        Returns:
+            Object of the specifed type bearing the input primary key.
+
+        Example:
+            with RemoteObjectStore as roj:
+                _instr = roj.get_object("INSTRUMENT", object_primary_key="AAPL")
+        """
         cls = StrToObjectMap[object_type]
 
         return self.dbc.orm_session.get(cls, object_primary_key)
 
     def get_list(self, object_type: str) -> list[BaseDataObject]:
-        """Get list of all objects of a certain type from dartabase."""
+        """Get list of all objects of a certain type from dartabase.
+
+        Args:
+            object_type: type of the object to get from db.
+
+        Returns:
+            List of all objects of the specified type.
+
+        Example:
+            with RemoteObjectStore as roj:
+                _instr = roj.get_list("INSTRUMENT")
+        """
         cls = StrToObjectMap[object_type]
 
         return self.dbc.orm_session.query(cls).all()
 
     def get_list_filter(self, object_type: str, filter_expression) -> list[BaseDataObject]:
-        """Gets list of all objects from a certain type, complying with the input filter expression."""
+        """Gets list of all objects from a certain type, complying with the input filter expression.
+
+        Args:
+            object_type: type of the object to get from db.
+            filter_expression: filter expression.
+
+        Returns:
+            List of all objects of the specified type matching with the input filter expreession.
+
+        Example:
+            with RemoteObjectStore as roj:
+                _instr = roj.get_list("INSTRUMENT", Instrument.id == "AAPL")
+        """
         cls = StrToObjectMap[object_type]
 
         return self.dbc.orm_session.query(cls).filter(filter_expression)
 
     def persist_object(self, obj_list: list[BaseDataObject]) -> None:
-        """Persists all objects from the input object list into the database."""
+        """Persists all objects from the input object list into the database.
+
+        Args:
+            obj_list: list of objects to persist.
+
+        Returns:
+            None
+
+        Example:
+            with RemoteObjectStore as roj:
+                roj.persist_object([..., ...])
+        """
         for obj in obj_list:
             self.dbc.orm_session.merge(obj)
 
     def delete_object(self, obj_list: list[BaseDataObject]) -> None:
-        """Deletes all objects from an input object list from the database."""
+        """Deletes all objects from an input object list from the database.
+
+        Args:
+            obj_list: list of objects to delete.
+
+        Returns:
+            None
+
+        Example:
+            with RemoteObjectStore as roj:
+                roj.delete_object([..., ...])
+        """
         for obj in obj_list:
-
-            self.dbc.orm_session.delete(obj)
-
-    def delete_by_object_id(self, id_list: list, object_type: str) -> None:
-        """Delete the object from the input type and input id."""
-        for object_id in id_list:
-            obj = self.dbc.orm_session.get(object_type, object_id)
 
             self.dbc.orm_session.delete(obj)
 
@@ -87,7 +120,18 @@ class RemoteObjectService:
 
 
 def create_object(object_type: str, **kwargs) -> BaseDataObject:
-    """Object factory."""
+    """Object factory.
+
+    Args:
+        object_type: type of the object to create.
+        **kwargs to describe other attributes of the object that will be instanciated.
+
+    Returns:
+        Object of the specified type with the input carachteristics.
+
+    Example:
+        aapl = create_object("INSTRUMENT", **kwargs)
+    """
     cls = StrToObjectMap[object_type]
 
     return cls(**kwargs)

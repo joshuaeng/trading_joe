@@ -19,7 +19,7 @@ class TradingSession:
 
         with RemoteObjectService() as objs:
 
-            portfolio_list = objs.get_list_filter("PORTFOLIO", Portfolio.user_id == self.user.user_id)
+            portfolio_list = objs.get_list_filter("PORTFOLIO", Portfolio.user_id == self.user.id)
 
         return portfolio_list
 
@@ -27,7 +27,7 @@ class TradingSession:
 
         with RemoteObjectService() as objs:
 
-            self.portfolio = objs.get_object("PORTFOLIO", portfolio.portfolio_id)
+            self.portfolio = objs.get_object("PORTFOLIO", portfolio.id)
 
     @staticmethod
     def load_all_listings():

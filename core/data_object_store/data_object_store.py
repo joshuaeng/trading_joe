@@ -1,7 +1,10 @@
 from sqlalchemy import Integer, String, Float, ForeignKey, Date
-from sqlalchemy.orm import declarative_base, Mapped, mapped_column
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from datetime import datetime
-Base = declarative_base()
+
+
+class Base(DeclarativeBase):
+    pass
 
 
 class BaseDataObject(Base):
@@ -84,7 +87,7 @@ class Listing(BaseDataObject):
         "polymorphic_identity": "listing",
     }
 
-    def __init__(self, listing_id: str, instrument_id: int, date: datetime, time: int, price: float):
+    def __init__(self, listing_id: str, instrument_id: str, date: datetime.date, time: int, price: float):
 
         super().__init__()
 
@@ -116,7 +119,7 @@ class Transaction(BaseDataObject):
         "polymorphic_identity": "transaction",
     }
 
-    def __init__(self, transaction_id: int, instrument_id: int, portfolio_id: int, quantity: int):
+    def __init__(self, transaction_id: str, instrument_id: str, portfolio_id: str, quantity: int):
 
         super().__init__()
 
@@ -142,7 +145,7 @@ class Portfolio(BaseDataObject):
         "polymorphic_identity": "portfolio",
     }
 
-    def __init__(self, portflio_id: int, name: str, user_id: int):
+    def __init__(self, portflio_id: str, name: str, user_id: str):
 
         super().__init__()
 
@@ -164,7 +167,7 @@ class User(BaseDataObject):
         "polymorphic_identity": "user",
     }
 
-    def __init__(self, user_id: int, name: str):
+    def __init__(self, user_id: str, name: str):
 
         super().__init__()
 

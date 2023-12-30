@@ -80,13 +80,13 @@ class MarketDataService:
 
     @staticmethod
     def get_price(instrument: Instrument):
-        return get_live_price(instrument.instrument_id)
+        return get_live_price(instrument.id)
 
     def get_listing(self, instrument: Instrument):
 
         return create_object(
             object_type="LISTING",
-            instrument_id=instrument.instrument_id,
+            instrument_id=instrument.id,
             date=datetime.date.today().strftime("%Y-%m-%d"),
             time=datetime.datetime.now().strftime("%H"),
             price=self.get_price(instrument)

@@ -2,16 +2,11 @@ from core.object_service.object_service import RemoteObjectService, create_objec
 
 with RemoteObjectService() as object_service:
 
-    instrument = create_object("INSTRUMENT")
+    user_1 = create_object("USER")
 
-    x = object_service.get_list("INSTRUMENT")
+    broker = create_object("BROKER")
 
-    instrument.set_attribute(id=1)
+    portfolio = create_object("PORTFOLIO")
 
-    portfolio = object_service.create_object("PORTFOLIO")
-
-    position = object_service.create_object("POSITION")
-
-    object_service.persist([position])
-
+    trading_session = create_object("TRADING_SESSION")
 

@@ -28,12 +28,13 @@ class DBConnector:
         self.connection_status = ConnectionStatus.DISCONNECTED
 
     def connect(self):
-        session = sessionmaker(bind=self.engine)
-        self.orm_session = session()
+        session = sessionmaker(bind=self.engine, expire_on_commit=False)
+        self.orm_session: sqlalchemy.orm.session = session()
 
         self.connection_status = ConnectionStatus.CONNECTED
 
     def close(self):
+        self.orm_session.expunge_all()
         self.orm_session.close()
 
         self.connection_status = ConnectionStatus.DISCONNECTED

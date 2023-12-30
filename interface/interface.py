@@ -1,3 +1,8 @@
+from service.market_data_service.market_data_service import MarketDataService
+
+mds = MarketDataService()
+
+
 def show_security_list():
     pass
 

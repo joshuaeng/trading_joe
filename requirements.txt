@@ -1,1 +1,4 @@
-sqlalchemy
+sqlalchemy~=2.0.21
+loguru
+requests~=2.31.0
+loguru~=0.7.2

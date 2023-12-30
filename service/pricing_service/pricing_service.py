@@ -1,5 +1,5 @@
 from core.database_service.db_connector import DBConnector
-from core.object_store.object_store import Instrument, InstrumentPrice
+from core.data_object_store.data_object_store import Instrument, Listing
 from abc import ABC, abstractmethod
 
 
@@ -26,5 +26,7 @@ class PricingService:
     def set_pricer(self, pricer: Pricer):
         self.pricer = pricer
 
-    def price_instrument(self, instrument: Instrument) -> InstrumentPrice:
+    def price_instrument(self, instrument: Instrument) -> Listing:
         return self.pricer.price(instrument)
+
+

@@ -1,6 +1,7 @@
 from sqlalchemy import Integer, String, Float, ForeignKey, Date
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from datetime import datetime
+from utils.utils import get_uuid
 
 
 class Base(DeclarativeBase):
@@ -9,7 +10,9 @@ class Base(DeclarativeBase):
 
 class BaseDataObject(Base):
     __tablename__ = "baseobject"
+
     id = mapped_column("id", String, primary_key=True)
+
     type: Mapped[str]
 
     __mapper_args__ = {
@@ -59,7 +62,13 @@ class Instrument(BaseDataObject):
         "polymorphic_identity": "instrument",
     }
 
-    def __init__(self, instrument_id: str, name: str, asset_type: str, status: str):
+    def __init__(
+            self,
+            instrument_id: str = None,
+            name: str = None,
+            asset_type: str = None,
+            status: str = None
+    ):
 
         super().__init__()
 
@@ -87,11 +96,18 @@ class Listing(BaseDataObject):
         "polymorphic_identity": "listing",
     }
 
-    def __init__(self, listing_id: str, instrument_id: str, date: datetime.date, time: int, price: float):
+    def __init__(
+            self,
+            listing_id: str = None,
+            instrument_id: str = None,
+            date: datetime.date = None,
+            time: int = None,
+            price: float = None
+    ):
 
         super().__init__()
 
-        self.id = listing_id
+        self.id = get_uuid() if listing_id is None else listing_id
 
         self.instrument_id = instrument_id
 
@@ -115,15 +131,23 @@ class Transaction(BaseDataObject):
 
     buy_price = mapped_column("buy_price", Float)
 
+    date = mapped_column("date", Date)
+
     __mapper_args__ = {
         "polymorphic_identity": "transaction",
     }
 
-    def __init__(self, transaction_id: str, instrument_id: str, portfolio_id: str, quantity: int):
+    def __init__(
+            self,
+            transaction_id: str = None,
+            instrument_id: str = None,
+            portfolio_id: str = None,
+            quantity: int = None
+    ):
 
         super().__init__()
 
-        self.id = transaction_id
+        self.id = get_uuid() if transaction_id is None else transaction_id
 
         self.instrument_id = instrument_id
 
@@ -145,11 +169,16 @@ class Portfolio(BaseDataObject):
         "polymorphic_identity": "portfolio",
     }
 
-    def __init__(self, portflio_id: str, name: str, user_id: str):
+    def __init__(
+            self,
+            portflio_id: str = None,
+            name: str = None,
+            user_id: str = None
+    ):
 
         super().__init__()
 
-        self.id = portflio_id
+        self.id = get_uuid() if portflio_id is None else portflio_id
 
         self.name = name
 
@@ -167,11 +196,15 @@ class User(BaseDataObject):
         "polymorphic_identity": "user",
     }
 
-    def __init__(self, user_id: str, name: str):
+    def __init__(
+            self,
+            user_id: str = None,
+            name: str = None
+    ):
 
         super().__init__()
 
-        self.id = user_id
+        self.id = get_uuid() if user_id is None else user_id
 
         self.name = name
 

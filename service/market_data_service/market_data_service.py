@@ -22,7 +22,7 @@ class URLBuilder:
         _str = ""
 
         for key, value in kwargs.items():
-            _str = _str = f"&{key}={value}"
+            _str = f"&{key}={value}"
 
         return _str
 
@@ -96,9 +96,6 @@ class MarketDataService:
 
         return [self.get_listing(instrument) for instrument in instrument_list]
 
-
-with RemoteObjectService() as roj:
-    aapl = roj.get_object("INSTRUMENT", "AAPL")
 
 
 

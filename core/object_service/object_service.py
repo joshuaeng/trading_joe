@@ -40,25 +40,9 @@ class RemoteObjectService:
 
         return self.dbc.orm_session.get(cls, object_primary_key)
 
-    def get_list(self, object_type: str) -> list[BaseDataObject]:
-        """Get list of all objects of a certain type from dartabase.
-
-        Args:
-            object_type: type of the object to get from db.
-
-        Returns:
-            List of all objects of the specified type.
-
-        Example:
-            with RemoteObjectStore as roj:
-                _instr = roj.get_list("INSTRUMENT")
-        """
-        cls = StrToObjectMap[object_type]
-
-        return self.dbc.orm_session.query(cls).all()
-
-    def get_list_filter(self, object_type: str, filter_expression) -> list[BaseDataObject]:
-        """Gets list of all objects from a certain type, complying with the input filter expression.
+    def get_object_list(self, object_type: str, filter_expression=None) -> list[BaseDataObject]:
+        """Gets list of all objects of a specified type, complying with the input filter expression.
+           If filter expression is not specified, all the objects of the specified type are retreived.
 
         Args:
             object_type: type of the object to get from db.
@@ -69,11 +53,14 @@ class RemoteObjectService:
 
         Example:
             with RemoteObjectStore as roj:
-                _instr = roj.get_list("INSTRUMENT", Instrument.id == "AAPL")
+                instrument = roj.get_object_list("INSTRUMENT", Instrument.id == "AAPL")
+                all_instruments = roj.get_object_list("INSTRUMENT")
         """
         cls = StrToObjectMap[object_type]
 
-        return self.dbc.orm_session.query(cls).filter(filter_expression)
+        return self.dbc.orm_session.query(cls).all() \
+            if filter_expression is None \
+            else self.dbc.orm_session.query(cls).filter(filter_expression)
 
     def persist_object(self, obj_list: list[BaseDataObject]) -> None:
         """Persists all objects from the input object list into the database.

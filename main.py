@@ -1,12 +1,13 @@
-from core.object_service.object_service import RemoteObjectService, create_object
+from service.market_data_service.market_data_service import MarketDataService
+from core.object_service.object_service import RemoteObjectService
 
-with RemoteObjectService() as object_service:
+with RemoteObjectService() as roj:
 
-    user_1 = create_object("USER")
+    action_apple = roj.get_object("INSTRUMENT", object_primary_key="AAPL")
 
-    broker = create_object("BROKER")
+mds = MarketDataService()
 
-    portfolio = create_object("PORTFOLIO")
+aapl_listing = mds.get_listings([action_apple])
 
-    trading_session = create_object("TRADING_SESSION")
+
 

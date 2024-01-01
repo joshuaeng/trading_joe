@@ -9,9 +9,12 @@ class TradingSession:
 
     Args:
         user: user
-        portfolio: portfolio
+        portfolio: optional, portfolio that will be used as active portfolio in the session
 
     Example:
+        ts = TradingSession()
+        new_ptf = tfs.new_portfolio()
+        listings = tfs.load_all_listings()
 
     """
 
@@ -22,6 +25,15 @@ class TradingSession:
         self.active_portfolio: Portfolio = portfolio
 
     def new_portfolio(self, name: str) -> None:
+        """Creates a new porfolio and sets it as active portfolio of the session.
+
+        Args:
+            name: name of the portfolio
+
+        Returns:
+            None
+
+        """
         new_portfolio = create_object("PORTFOLIO")
 
         new_portfolio.set_attribute(
@@ -35,6 +47,11 @@ class TradingSession:
             roj.persist_object([new_portfolio])
 
     def load_existing_portfolios(self):
+        """Shows all portfolios assigned to user.
+
+        Returns:
+            List of portfolios.
+        """
 
         with RemoteObjectService() as roj:
 

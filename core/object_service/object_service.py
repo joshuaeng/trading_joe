@@ -1,4 +1,5 @@
 from core.database_service.db_connector import DBConnector
+from typing import Union
 
 from core.data_object_store.data_object_store import \
     Instrument, \
@@ -6,10 +7,11 @@ from core.data_object_store.data_object_store import \
     Portfolio, \
     BaseDataObject, \
     User, \
+    TradingSession, \
     Listing
 
 
-__CoreObjectList__ = [Instrument, Transaction, Portfolio, User, Listing]
+__CoreObjectList__ = [Instrument, Transaction, Portfolio, User, Listing, TradingSession]
 
 StrToObjectMap = {_object.__tablename__.upper(): _object for _object in __CoreObjectList__}
 
@@ -22,25 +24,7 @@ class RemoteObjectService:
         """
         self.dbc: DBConnector = DBConnector()
 
-    def get_object(self, object_type: str, object_primary_key) -> BaseDataObject:
-        """Gets object from database.
-
-        Args:
-            object_type: type of the object to get from db.
-            object_primary_key: primary key of the object to get from db.
-
-        Returns:
-            Object of the specifed type bearing the input primary key.
-
-        Example:
-            with RemoteObjectStore as roj:
-                _instr = roj.get_object("INSTRUMENT", object_primary_key="AAPL")
-        """
-        cls = StrToObjectMap[object_type]
-
-        return self.dbc.orm_session.get(cls, object_primary_key)
-
-    def get_object_list(self, object_type: str, filter_expression=None) -> list[BaseDataObject]:
+    def get_object(self, object_type: str, filter_expression=None) -> Union[list[BaseDataObject], BaseDataObject]:
         """Gets list of all objects of a specified type, complying with the input filter expression.
            If filter expression is not specified, all the objects of the specified type are retreived.
 
@@ -50,6 +34,7 @@ class RemoteObjectService:
 
         Returns:
             List of all objects of the specified type matching with the input filter expreession.
+            If the list contains only one object then the object is returned.
 
         Example:
             with RemoteObjectStore as roj:
@@ -58,9 +43,11 @@ class RemoteObjectService:
         """
         cls = StrToObjectMap[object_type]
 
-        return self.dbc.orm_session.query(cls).all() \
+        result = self.dbc.orm_session.query(cls).all() \
             if filter_expression is None \
             else self.dbc.orm_session.query(cls).filter(filter_expression)
+
+        return result[0] if len(result) > 1 else result
 
     def persist_object(self, obj_list: list[BaseDataObject]) -> None:
         """Persists all objects from the input object list into the database.

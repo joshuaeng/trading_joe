@@ -43,6 +43,9 @@ class BaseDataObject(Base):
             key for key in self.__class__.__dict__.keys() if not key.startswith("_")
         ]
 
+    def to_json(self):
+        return self.__dict__
+
     def __repr__(self):
         return f"{self.__class__.__name__.upper()}('{self.id}')"
 
@@ -208,6 +211,28 @@ class User(BaseDataObject):
 
         self.name = name
 
+
+class TradingSession(BaseDataObject):
+    __tablename__ = "tradingsession"
+
+    id = mapped_column(ForeignKey("baseobject.id"), primary_key=True)
+
+    name = mapped_column("name", String)
+
+    user_id = mapped_column(String, ForeignKey("user.id"))
+
+    portfolio_id = mapped_column(String, ForeignKey("portfolio.id"))
+
+    def __init__(
+            self,
+            session_id: str = None,
+            user_id: str = None,
+            portfolio_id: str = None
+    ):
+        super().__init__()
+        self.id = get_uuid() if session_id is None else session_id
+        self.user_id = user_id
+        self.portfolio_id = portfolio_id
 
 
 

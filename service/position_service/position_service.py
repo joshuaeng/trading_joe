@@ -23,7 +23,7 @@ class PositionService:
 
         instrument_ids = list(set([transaction.instrument_id for transaction in transaction_list]))
         with RemoteObjectService() as roj:
-            instuments = roj.get_object_list("INSTRUMENT", filter_expression=Instrument.id in instrument_ids)
+            instuments = roj.get_object("INSTRUMENT", filter_expression=Instrument.id in instrument_ids)
 
         position_dictionary = {
             instrument: self._get_quantity(transaction_list, instrument) for instrument in instuments
@@ -35,7 +35,7 @@ class PositionService:
 
         with RemoteObjectService() as roj:
 
-            transactions = roj.get_object_list(
+            transactions = roj.get_object(
                 "TRANSACTION",
                 filter_expression=Transaction.portfolio_id == portfolio.id
             )

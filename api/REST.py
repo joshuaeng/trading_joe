@@ -112,7 +112,7 @@ def create_transaction(listing_id: str, quantity: int, portfolio_id: str) -> Non
 @engine.post("portfolio/evaluate")
 def evaluate_portfolio(portfolio_id: str) -> dict:
     with RemoteObjectService() as roj:
-        portfolio = roj.get_object("PORTFOLIO", filter_expression=Portfolio.id == portfolio_id)
+        portfolio: Portfolio = roj.get_object("PORTFOLIO", filter_expression=Portfolio.id == portfolio_id)
     return PositionService().evaluate_positions(portfolio)
 
 

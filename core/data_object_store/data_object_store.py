@@ -213,7 +213,7 @@ class User(BaseDataObject):
 
 
 class TradingSession(BaseDataObject):
-    __tablename__ = "tradingsession"
+    __tablename__ = "trading_session"
 
     id = mapped_column(ForeignKey("baseobject.id"), primary_key=True)
 
@@ -222,6 +222,10 @@ class TradingSession(BaseDataObject):
     user_id = mapped_column(String, ForeignKey("user.id"))
 
     portfolio_id = mapped_column(String, ForeignKey("portfolio.id"))
+
+    __mapper_args__ = {
+        "polymorphic_identity": "trading_session",
+    }
 
     def __init__(
             self,

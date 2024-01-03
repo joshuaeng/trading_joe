@@ -8,6 +8,14 @@ import uvicorn
 app = FastAPI()
 
 
+@app.get("/user")
+def get_user(user_name: str) -> dict:
+    with RemoteObjectService() as roj:
+        user = roj.get_object("USER", filter_expression=User.name == user_name)
+
+    return user.to_json()
+
+
 @app.post(path="/user/create")
 def create_new_user(user_name: str) -> dict:
     new_user = create_object("USER", name=user_name)

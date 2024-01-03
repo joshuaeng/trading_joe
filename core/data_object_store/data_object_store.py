@@ -44,7 +44,8 @@ class BaseDataObject(Base):
         ]
 
     def to_json(self):
-        return self.__dict__
+        json = self.__dict__
+        return {key: value for key, value in json.items() if not key.startswith("_")}
 
     def __repr__(self):
         return f"{self.__class__.__name__.upper()}('{self.id}')"

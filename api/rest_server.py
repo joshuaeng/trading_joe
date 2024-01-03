@@ -5,7 +5,7 @@ from service.position_service.position_service import PositionService
 from fastapi import FastAPI
 import uvicorn
 
-app = FastAPI()
+app = FastAPI(title="TradingJoe")
 
 # TODO: Exception handling + custom exceptions
 # TODO: Update endpoint for trading session, the linked portfolio should be changable

@@ -45,7 +45,7 @@ class RemoteObjectService:
 
         result = self.dbc.orm_session.query(cls).all() \
             if filter_expression is None \
-            else self.dbc.orm_session.query(cls).filter(filter_expression)
+            else self.dbc.orm_session.query(cls).filter(filter_expression).all()
 
         return result[0] if len(result) == 1 else result
 

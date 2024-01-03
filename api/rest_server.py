@@ -3,11 +3,12 @@ from core.object_service.object_service import Instrument, User, TradingSession,
 from service.market_data_service.market_data_service import MarketDataService
 from service.position_service.position_service import PositionService
 from fastapi import FastAPI
+import uvicorn
 
-engine = FastAPI()
+app = FastAPI()
 
 
-@engine.post(path="user/create")
+@app.post(path="/user/create")
 def create_new_user(user_name: str) -> dict:
     new_user = create_object("USER", name=user_name)
 
@@ -17,22 +18,13 @@ def create_new_user(user_name: str) -> dict:
     return new_user.to_json()
 
 
-@engine.post("portfolio/create")
-def create_new_portfolio(name: str, user: User) -> dict:
-    """Creates a new porfolio and sets it as active portfolio of the session.
+@app.post("/portfolio/create")
+def create_new_portfolio(name: str, user_id: str) -> dict:
 
-    Args:
-        name: name of the portfolio
-        user: user of the portfolio
-
-    Returns:
-        None
-
-    """
     new_portfolio = create_object("PORTFOLIO")
 
     new_portfolio.set_attribute(
-        user_id=user.id,
+        user_id=user_id,
         name=name
     )
 
@@ -42,7 +34,7 @@ def create_new_portfolio(name: str, user: User) -> dict:
     return new_portfolio.to_json()
 
 
-@engine.get("tradingsession")
+@app.get("/tradingsession")
 def load_trading_session(user_id: str) -> dict:
     with RemoteObjectService() as roj:
         trading_session = roj.get_object("TRADINGSESSION", filter_expression=TradingSession.user_id == user_id)
@@ -50,7 +42,7 @@ def load_trading_session(user_id: str) -> dict:
     return trading_session.to_json()
 
 
-@engine.post("tradingsession/ceate")
+@app.post("/tradingsession/ceate")
 def create_new_trading_session(user_id: str, portfolio_id: str) -> dict:
     trading_session = create_object("TRADING_SESSION")
     trading_session.set_attribute(
@@ -61,7 +53,7 @@ def create_new_trading_session(user_id: str, portfolio_id: str) -> dict:
     return trading_session.to_json()
 
 
-@engine.get("portfolio")
+@app.get("/portfolio")
 def load_user_portfolios(user_id: str) -> dict:
     """Shows all portfolios assigned to user.
 
@@ -76,7 +68,7 @@ def load_user_portfolios(user_id: str) -> dict:
     return {portfolio.name: portfolio.to_json() for portfolio in portfolio_list}
 
 
-@engine.get("listing")
+@app.get("/listing")
 def load_all_listings() -> dict:
 
     with RemoteObjectService() as roj:
@@ -88,7 +80,7 @@ def load_all_listings() -> dict:
     return {listing.instrument_id: listing.to_json() for listing in listings}
 
 
-@engine.post("transaction/create")
+@app.post("/transaction/create")
 def create_transaction(listing_id: str, quantity: int, portfolio_id: str) -> None:
 
     with RemoteObjectService() as roj:
@@ -109,15 +101,15 @@ def create_transaction(listing_id: str, quantity: int, portfolio_id: str) -> Non
         objs.persist_object([transaction])
 
 
-@engine.post("portfolio/evaluate")
+@app.post("/portfolio/evaluate")
 def evaluate_portfolio(portfolio_id: str) -> dict:
     with RemoteObjectService() as roj:
         portfolio: Portfolio = roj.get_object("PORTFOLIO", filter_expression=Portfolio.id == portfolio_id)
     return PositionService().evaluate_positions(portfolio)
 
 
-
-
+if __name__ == "__main__":
+    uvicorn.run(app)
 
 
 

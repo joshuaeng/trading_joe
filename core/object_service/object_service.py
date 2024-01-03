@@ -47,7 +47,7 @@ class RemoteObjectService:
             if filter_expression is None \
             else self.dbc.orm_session.query(cls).filter(filter_expression)
 
-        return result[0] if len(result) > 1 else result
+        return result[0] if len(result) == 1 else result
 
     def persist_object(self, obj_list: list[BaseDataObject]) -> None:
         """Persists all objects from the input object list into the database.

@@ -2,12 +2,11 @@ import datetime
 from core.object_service.object_service import Instrument, User, TradingSession, Listing, Portfolio, RemoteObjectService, create_object
 from service.market_data_service.market_data_service import MarketDataService
 from service.position_service.position_service import PositionService
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 import uvicorn
 
 app = FastAPI(title="TradingJoe")
 
-# TODO: Exception handling + custom exceptions
 # TODO: Update endpoint for trading session, the linked portfolio should be changable
 
 
@@ -21,8 +20,12 @@ def get_user(user_name: str) -> dict:
     Returns:
         JSON representation of user.
     """
-    with RemoteObjectService() as roj:
-        user = roj.get_object("USER", filter_expression=User.name == user_name)
+    try:
+        with RemoteObjectService() as roj:
+            user = roj.get_object("USER", filter_expression=User.name == user_name)
+
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=e)
 
     return user.to_json()
 
@@ -40,8 +43,12 @@ def create_new_user(user_name: str) -> dict:
     """
     new_user = create_object("USER", name=user_name)
 
-    with RemoteObjectService() as roj:
-        roj.persist_object(obj_list=[new_user])
+    try:
+        with RemoteObjectService() as roj:
+            roj.persist_object(obj_list=[new_user])
+
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=e)
 
     return new_user.to_json()
 
@@ -57,16 +64,19 @@ def create_new_portfolio(name: str, user_id: str) -> dict:
     Returns:
         JSON representation of the new portfolio.
     """
+    try:
+        new_portfolio = create_object("PORTFOLIO")
 
-    new_portfolio = create_object("PORTFOLIO")
+        new_portfolio.set_attribute(
+            user_id=user_id,
+            name=name
+        )
 
-    new_portfolio.set_attribute(
-        user_id=user_id,
-        name=name
-    )
+        with RemoteObjectService() as roj:
+            roj.persist_object([new_portfolio])
 
-    with RemoteObjectService() as roj:
-        roj.persist_object([new_portfolio])
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=e)
 
     return new_portfolio.to_json()
 
@@ -82,8 +92,12 @@ def load_trading_session(user_id: str) -> dict:
         JSON representation of trading session.
 
     """
-    with RemoteObjectService() as roj:
-        trading_session = roj.get_object("TRADINGSESSION", filter_expression=TradingSession.user_id == user_id)
+    try:
+        with RemoteObjectService() as roj:
+            trading_session = roj.get_object("TRADINGSESSION", filter_expression=TradingSession.user_id == user_id)
+
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=e)
 
     return trading_session.to_json()
 
@@ -99,11 +113,15 @@ def create_new_trading_session(user_id: str, portfolio_id: str) -> dict:
     Returns:
         JSON representation of the trading session.
     """
-    trading_session = create_object("TRADING_SESSION")
-    trading_session.set_attribute(
-        user_id=user_id,
-        portfolio_id=portfolio_id
-    )
+    try:
+        trading_session = create_object("TRADING_SESSION")
+        trading_session.set_attribute(
+            user_id=user_id,
+            portfolio_id=portfolio_id
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=e)
 
     return trading_session.to_json()
 
@@ -118,10 +136,12 @@ def load_user_portfolios(user_id: str) -> dict:
     Returns:
         JSON representation of the linked portfolios.
     """
+    try:
+        with RemoteObjectService() as roj:
+            portfolio_list = roj.get_object("PORTFOLIO", Portfolio.user_id == user_id)
 
-    with RemoteObjectService() as roj:
-
-        portfolio_list = roj.get_object("PORTFOLIO", Portfolio.user_id == user_id)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=e)
 
     return {portfolio.name: portfolio.to_json() for portfolio in portfolio_list}
 
@@ -133,12 +153,14 @@ def load_all_listings() -> dict:
     Returns:
         JSON representation of all listings.
     """
+    try:
+        with RemoteObjectService() as roj:
+            instruments: list[Instrument] = roj.get_object("INSTRUMENT")
 
-    with RemoteObjectService() as roj:
+        listings = MarketDataService().get_listings(instruments)
 
-        instruments: list[Instrument] = roj.get_object("INSTRUMENT")
-
-    listings = MarketDataService().get_listings(instruments)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=e)
 
     return {listing.instrument_id: listing.to_json() for listing in listings}
 
@@ -155,23 +177,26 @@ def create_transaction(listing_id: str, quantity: int, portfolio_id: str) -> Non
     Returns:
         JSON representation of the created transaction.
     """
+    try:
+        with RemoteObjectService() as roj:
+            listing: Listing = roj.get_object("LISTING", filter_expression=Listing.id == listing_id)
 
-    with RemoteObjectService() as roj:
-        listing: Listing = roj.get_object("LISTING", filter_expression=Listing.id == listing_id)
+        transaction = create_object("TRANSACTION")
 
-    transaction = create_object("TRANSACTION")
+        transaction.set_attribute(
+            instrument_id=listing.instrument_id,
+            portfolio_id=portfolio_id,
+            quantity=quantity,
+            date=datetime.datetime.now().strftime("%Y-%m-%d"),
+            buy_price=listing.price
+        )
 
-    transaction.set_attribute(
-        instrument_id=listing.instrument_id,
-        portfolio_id=portfolio_id,
-        quantity=quantity,
-        date=datetime.datetime.now().strftime("%Y-%m-%d"),
-        buy_price=listing.price
-    )
+        with RemoteObjectService() as objs:
 
-    with RemoteObjectService() as objs:
+            objs.persist_object([transaction])
 
-        objs.persist_object([transaction])
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=e)
 
 
 @app.post("/portfolio/evaluate")
@@ -185,9 +210,13 @@ def evaluate_portfolio(portfolio_id: str) -> dict:
         JSON with keys -> instrument_id and value -> quantity (int)
 
     """
-    with RemoteObjectService() as roj:
-        portfolio: Portfolio = roj.get_object("PORTFOLIO", filter_expression=Portfolio.id == portfolio_id)
-    return PositionService().evaluate_positions(portfolio)
+    try:
+        with RemoteObjectService() as roj:
+            portfolio: Portfolio = roj.get_object("PORTFOLIO", filter_expression=Portfolio.id == portfolio_id)
+        return PositionService().evaluate_positions(portfolio)
+
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=e)
 
 
 if __name__ == "__main__":

@@ -1,8 +1,5 @@
-from core.object_service.object_service import \
-    RemoteObjectService, \
-    Portfolio, \
-    Transaction, \
-    Instrument
+from core.object_service.object_service import RemoteObjectService
+from core.data_object_store.data_object_store import *
 
 
 class PositionService:

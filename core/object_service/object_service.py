@@ -1,19 +1,8 @@
 from core.database_service.db_connector import DBConnector
+from core.data_object_store.data_object_store import BaseDataObject, object_list
 from typing import Union
 
-from core.data_object_store.data_object_store import \
-    Instrument, \
-    Transaction, \
-    Portfolio, \
-    BaseDataObject, \
-    User, \
-    TradingSession, \
-    Listing
-
-
-__CoreObjectList__ = [Instrument, Transaction, Portfolio, User, Listing, TradingSession]
-
-StrToObjectMap = {_object.__tablename__.upper(): _object for _object in __CoreObjectList__}
+StrToObjectMap = {_object.__tablename__.upper(): _object for _object in object_list}
 
 
 class RemoteObjectService:
@@ -46,6 +35,9 @@ class RemoteObjectService:
         result = self.dbc.orm_session.query(cls).all() \
             if filter_expression is None \
             else self.dbc.orm_session.query(cls).filter(filter_expression).all()
+
+        if not result:
+            raise Exception(f"Query returned an empty array.")
 
         return result[0] if len(result) == 1 else result
 

@@ -4,7 +4,8 @@ import requests
 from service.market_data_service.config import API_KEY
 import csv
 from enum import Enum
-from core.object_service.object_service import RemoteObjectService, create_object, Instrument
+from core.object_service.object_service import RemoteObjectService, create_object
+from core.data_object_store.data_object_store import *
 from yahoo_fin.stock_info import get_live_price
 
 
@@ -83,7 +84,6 @@ class MarketDataService:
         return get_live_price(instrument.id)
 
     def get_listing(self, instrument: Instrument):
-
         return create_object(
             object_type="LISTING",
             instrument_id=instrument.id,
@@ -93,9 +93,13 @@ class MarketDataService:
         )
 
     def get_listings(self, instrument_list: list[Instrument]):
-
         return [self.get_listing(instrument) for instrument in instrument_list]
 
+    def sync_listings(self):
+        with RemoteObjectService() as roj:
+            instruments = roj.get_object("INSTRUMENT", filter_expression=Instrument.status == "Active")
+            listings = self.get_listings(instruments)
+            roj.persist_object(listings)
 
 
 

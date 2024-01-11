@@ -11,7 +11,7 @@ class Base(DeclarativeBase):
 class BaseDataObject(Base):
     __tablename__ = "baseobject"
 
-    id = mapped_column("id", String, primary_key=True)
+    id = mapped_column("id", String(50), primary_key=True)
 
     type: Mapped[str]
 
@@ -51,16 +51,40 @@ class BaseDataObject(Base):
         return f"{self.__class__.__name__.upper()}('{self.id}')"
 
 
+class User(BaseDataObject):
+    __tablename__ = "user"
+
+    id = mapped_column(ForeignKey("baseobject.id"), primary_key=True)
+
+    name = mapped_column("name", String(50))
+
+    __mapper_args__ = {
+        "polymorphic_identity": "user",
+    }
+
+    def __init__(
+            self,
+            user_id: str = None,
+            name: str = None
+    ):
+
+        super().__init__()
+
+        self.id = get_uuid() if user_id is None else user_id
+
+        self.name = name
+
+
 class Instrument(BaseDataObject):
     __tablename__ = "instrument"
 
     id = mapped_column(ForeignKey("baseobject.id"), primary_key=True)
 
-    name = mapped_column("name", String)
+    name = mapped_column("name", String(50))
 
-    asset_type = mapped_column("asset_type", String)
+    asset_type = mapped_column("asset_type", String(50))
 
-    status = mapped_column("status", String)
+    status = mapped_column("status", String(50))
 
     __mapper_args__ = {
         "polymorphic_identity": "instrument",
@@ -90,7 +114,7 @@ class Listing(BaseDataObject):
 
     id = mapped_column(ForeignKey("baseobject.id"), primary_key=True)
 
-    instrument_id = mapped_column(String, ForeignKey("instrument.id"))
+    instrument_id = mapped_column(String(50), ForeignKey("instrument.id"))
 
     date = mapped_column("date", Date)
 
@@ -122,14 +146,43 @@ class Listing(BaseDataObject):
         self.price = price
 
 
+class Portfolio(BaseDataObject):
+    __tablename__ = "portfolio"
+
+    id = mapped_column(ForeignKey("baseobject.id"), primary_key=True)
+
+    name = mapped_column("name", String(50))
+
+    user_id = mapped_column(String(50), ForeignKey("user.id"))
+
+    __mapper_args__ = {
+        "polymorphic_identity": "portfolio",
+    }
+
+    def __init__(
+            self,
+            portflio_id: str = None,
+            name: str = None,
+            user_id: str = None
+    ):
+
+        super().__init__()
+
+        self.id = get_uuid() if portflio_id is None else portflio_id
+
+        self.name = name
+
+        self.user_id = user_id
+
+
 class Transaction(BaseDataObject):
     __tablename__ = "transaction"
 
     id = mapped_column(ForeignKey("baseobject.id"), primary_key=True)
 
-    portfolio_id = mapped_column(String, ForeignKey("portfolio.id"))
+    portfolio_id = mapped_column(String(50), ForeignKey("portfolio.id"))
 
-    instrument_id = mapped_column(String, ForeignKey("instrument.id"))
+    instrument_id = mapped_column(String(50), ForeignKey("instrument.id"))
 
     quantity = mapped_column("quantity", Integer)
 
@@ -160,69 +213,16 @@ class Transaction(BaseDataObject):
         self.quantity = quantity
 
 
-class Portfolio(BaseDataObject):
-    __tablename__ = "portfolio"
-
-    id = mapped_column(ForeignKey("baseobject.id"), primary_key=True)
-
-    name = mapped_column("name", String)
-
-    user_id = mapped_column(String, ForeignKey("user.id"))
-
-    __mapper_args__ = {
-        "polymorphic_identity": "portfolio",
-    }
-
-    def __init__(
-            self,
-            portflio_id: str = None,
-            name: str = None,
-            user_id: str = None
-    ):
-
-        super().__init__()
-
-        self.id = get_uuid() if portflio_id is None else portflio_id
-
-        self.name = name
-
-        self.user_id = user_id
-
-
-class User(BaseDataObject):
-    __tablename__ = "user"
-
-    id = mapped_column(ForeignKey("baseobject.id"), primary_key=True)
-
-    name = mapped_column("name", String)
-
-    __mapper_args__ = {
-        "polymorphic_identity": "user",
-    }
-
-    def __init__(
-            self,
-            user_id: str = None,
-            name: str = None
-    ):
-
-        super().__init__()
-
-        self.id = get_uuid() if user_id is None else user_id
-
-        self.name = name
-
-
 class TradingSession(BaseDataObject):
     __tablename__ = "trading_session"
 
     id = mapped_column(ForeignKey("baseobject.id"), primary_key=True)
 
-    name = mapped_column("name", String)
+    name = mapped_column("name", String(50))
 
-    user_id = mapped_column(String, ForeignKey("user.id"))
+    user_id = mapped_column(String(50), ForeignKey("user.id"))
 
-    portfolio_id = mapped_column(String, ForeignKey("portfolio.id"))
+    portfolio_id = mapped_column(String(50), ForeignKey("portfolio.id"))
 
     __mapper_args__ = {
         "polymorphic_identity": "trading_session",
@@ -240,6 +240,8 @@ class TradingSession(BaseDataObject):
         self.portfolio_id = portfolio_id
 
 
+object_list = [_obj for _obj in BaseDataObject.__subclasses__()]
+table_list = [_obj.__table__ for _obj in object_list]
 
 
 

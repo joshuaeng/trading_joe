@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 from core.object_service.object_service import RemoteObjectService, create_object
 from core.data_object_store.data_object_store import *
 from service.market_data_service.market_data_service import MarketDataService
@@ -72,7 +72,10 @@ def load_portfolios(user_id: str) -> dict:
     except Exception as e:
         raise HTTPException(status_code=400, detail={"error": str(e)})
 
-    return {portfolio.name: portfolio.to_json() for portfolio in portfolio_list}
+    if not isinstance(portfolio_list, list):
+        portfolio_list = [portfolio_list]
+
+    return {portfolio.get_attribute("name"): portfolio.to_json() for portfolio in portfolio_list}
 
 
 @app.post("/portfolio/create")
@@ -103,51 +106,6 @@ def create_portfolio(name: str, user_id: str) -> dict:
     return new_portfolio.to_json()
 
 
-@app.get("/tradingsession")
-def load_trading_session(user_id: str) -> dict:
-    """
-    Gets trading session.
-    Args:
-        user_id: id of the user attached to the trading session.
-
-    Returns:
-        JSON representation of trading session.
-
-    """
-    try:
-        with RemoteObjectService() as roj:
-            trading_session = roj.get_object("TRADINGSESSION", filter_expression=TradingSession.user_id == user_id)
-
-    except Exception as e:
-        raise HTTPException(status_code=400, detail={"error": str(e)})
-
-    return trading_session.to_json()
-
-
-@app.post("/tradingsession/ceate")
-def create_trading_session(user_id: str, portfolio_id: str) -> dict:
-    """
-    Creates a new trading session.
-    Args:
-        user_id: id of the user.
-        portfolio_id: portfolio attached to the trading session.
-
-    Returns:
-        JSON representation of the trading session.
-    """
-    try:
-        trading_session = create_object("TRADING_SESSION")
-        trading_session.set_attribute(
-            user_id=user_id,
-            portfolio_id=portfolio_id
-        )
-
-    except Exception as e:
-        raise HTTPException(status_code=400, detail={"error": str(e)})
-
-    return trading_session.to_json()
-
-
 @app.get("/listing")
 def load_listings() -> dict:
     """
@@ -157,9 +115,7 @@ def load_listings() -> dict:
     """
     try:
         with RemoteObjectService() as roj:
-            instruments = roj.get_object("INSTRUMENT")
-
-        listings = MarketDataService().create_listings_from_instruments(instruments)
+            listings = roj.get_object("LISTING")
 
     except Exception as e:
         raise HTTPException(status_code=400, detail={"error": str(e)})
@@ -189,7 +145,7 @@ def create_transaction(listing_id: str, quantity: int, portfolio_id: str) -> Non
             instrument_id=listing.get_attribute("instrument_id"),
             portfolio_id=portfolio_id,
             quantity=quantity,
-            date=datetime.datetime.now().strftime("%Y-%m-%d"),
+            date=datetime.now().strftime("%Y-%m-%d"),
             buy_price=listing.get_attribute("price")
         )
 

@@ -88,20 +88,13 @@ class MarketDataService:
         return get_live_price(instrument.id)
 
     def create_listing_from_instrument(self, instrument: Instrument):
-        try:
-            price = self.get_price(instrument)
-            return create_object(
-                object_type="LISTING",
-                instrument_id=instrument.id,
-                date=datetime.now().strftime("%Y-%m-%d"),
-                price=price
-            )
-
-        except Exception as e:
-            logger.info(f"{e}")
-
-        finally:
-            pass
+        price = self.get_price(instrument)
+        return create_object(
+            object_type="LISTING",
+            instrument_id=instrument.id,
+            date=datetime.now().strftime("%Y-%m-%d"),
+            price=price
+        )
 
     @staticmethod
     def sync_listing(listing):
@@ -114,8 +107,12 @@ class MarketDataService:
 
         for instrument in instruments:
             if instrument.get_attribute("asset_type") == "Stock":
-                listing = self.create_listing_from_instrument(instrument)
-                self.sync_listing([listing])
+                try:
+                    listing = self.create_listing_from_instrument(instrument)
+                    self.sync_listing([listing])
+
+                except Exception as e:
+                    logger.exception(f"{e}")
 
 
 

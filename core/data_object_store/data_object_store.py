@@ -50,6 +50,9 @@ class BaseDataObject(Base):
     def __repr__(self):
         return f"{self.__class__.__name__.upper()}('{self.id}')"
 
+    def as_list(self):
+        return [self]
+
 
 class User(BaseDataObject):
     __tablename__ = "user"
@@ -213,37 +216,9 @@ class Transaction(BaseDataObject):
         self.quantity = quantity
 
 
-class TradingSession(BaseDataObject):
-    __tablename__ = "trading_session"
-
-    id = mapped_column(ForeignKey("baseobject.id"), primary_key=True)
-
-    name = mapped_column("name", String(50))
-
-    user_id = mapped_column(String(50), ForeignKey("user.id"))
-
-    portfolio_id = mapped_column(String(50), ForeignKey("portfolio.id"))
-
-    __mapper_args__ = {
-        "polymorphic_identity": "trading_session",
-    }
-
-    def __init__(
-            self,
-            session_id: str = None,
-            user_id: str = None,
-            portfolio_id: str = None
-    ):
-        super().__init__()
-        self.id = get_uuid() if session_id is None else session_id
-        self.user_id = user_id
-        self.portfolio_id = portfolio_id
-
-
 object_list = [_obj for _obj in BaseDataObject.__subclasses__()]
 table_list = [BaseDataObject.__table__]
 table_list.extend([_obj.__table__ for _obj in object_list])
-
 
 
 

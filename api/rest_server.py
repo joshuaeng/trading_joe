@@ -159,7 +159,7 @@ def load_listings() -> dict:
         with RemoteObjectService() as roj:
             instruments = roj.get_object("INSTRUMENT")
 
-        listings = MarketDataService().get_listings(instruments)
+        listings = MarketDataService().create_listings_from_instruments(instruments)
 
     except Exception as e:
         raise HTTPException(status_code=400, detail={"error": str(e)})

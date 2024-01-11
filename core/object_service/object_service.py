@@ -1,6 +1,7 @@
 from core.database_service.db_connector import DBConnector
 from core.data_object_store.data_object_store import BaseDataObject, object_list
 from typing import Union
+from loguru import logger
 
 StrToObjectMap = {_object.__tablename__.upper(): _object for _object in object_list}
 
@@ -55,7 +56,12 @@ class RemoteObjectService:
                 roj.persist_object([..., ...])
         """
         for obj in obj_list:
-            self.dbc.orm_session.merge(obj)
+            logger.info(f"Persisting {obj.__repr__()}")
+            try:
+                self.dbc.orm_session.merge(obj)
+            except Exception as e:
+                logger.exception("Could not persist object.")
+                raise e
 
     def delete_object(self, obj_list: list[BaseDataObject]) -> None:
         """Deletes all objects from an input object list from the database.

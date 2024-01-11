@@ -13,7 +13,7 @@ class BaseDataObject(Base):
 
     id = mapped_column("id", String(50), primary_key=True)
 
-    type: Mapped[str]
+    type = mapped_column("type", String(50))
 
     __mapper_args__ = {
         "polymorphic_identity": "baseobject",
@@ -80,7 +80,7 @@ class Instrument(BaseDataObject):
 
     id = mapped_column(ForeignKey("baseobject.id"), primary_key=True)
 
-    name = mapped_column("name", String(50))
+    name = mapped_column("name", String(100))
 
     asset_type = mapped_column("asset_type", String(50))
 
@@ -241,7 +241,8 @@ class TradingSession(BaseDataObject):
 
 
 object_list = [_obj for _obj in BaseDataObject.__subclasses__()]
-table_list = [_obj.__table__ for _obj in object_list]
+table_list = [BaseDataObject.__table__]
+table_list.extend([_obj.__table__ for _obj in object_list])
 
 
 

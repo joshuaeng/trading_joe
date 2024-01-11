@@ -28,7 +28,7 @@ class DBConnector:
         self.connection_status = ConnectionStatus.DISCONNECTED
 
     def connect(self):
-        session = sessionmaker(bind=self.engine, expire_on_commit=False)
+        session = sessionmaker(bind=self.engine, expire_on_commit=False, autoflush=False)
         self.orm_session: sqlalchemy.orm.session = session()
 
         self.connection_status = ConnectionStatus.CONNECTED

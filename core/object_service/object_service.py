@@ -1,19 +1,9 @@
 from core.database_service.db_connector import DBConnector
+from core.data_object_store.data_object_store import BaseDataObject, object_list
 from typing import Union
+from loguru import logger
 
-from core.data_object_store.data_object_store import \
-    Instrument, \
-    Transaction, \
-    Portfolio, \
-    BaseDataObject, \
-    User, \
-    TradingSession, \
-    Listing
-
-
-__CoreObjectList__ = [Instrument, Transaction, Portfolio, User, Listing, TradingSession]
-
-StrToObjectMap = {_object.__tablename__.upper(): _object for _object in __CoreObjectList__}
+StrToObjectMap = {_object.__tablename__.upper(): _object for _object in object_list}
 
 
 class RemoteObjectService:
@@ -47,6 +37,9 @@ class RemoteObjectService:
             if filter_expression is None \
             else self.dbc.orm_session.query(cls).filter(filter_expression).all()
 
+        if not result:
+            raise Exception(f"Query returned an empty array.")
+
         return result[0] if len(result) == 1 else result
 
     def persist_object(self, obj_list: list[BaseDataObject]) -> None:
@@ -63,7 +56,12 @@ class RemoteObjectService:
                 roj.persist_object([..., ...])
         """
         for obj in obj_list:
-            self.dbc.orm_session.merge(obj)
+            logger.info(f"Persisting {obj.__repr__()}")
+            try:
+                self.dbc.orm_session.merge(obj)
+            except Exception as e:
+                logger.exception("Could not persist object.")
+                raise e
 
     def delete_object(self, obj_list: list[BaseDataObject]) -> None:
         """Deletes all objects from an input object list from the database.

@@ -1,11 +1,15 @@
-import datetime
-
 import requests
+from loguru import logger
+
 from service.market_data_service.config import API_KEY
 import csv
 from enum import Enum
-from core.object_service.object_service import RemoteObjectService, create_object, Instrument
+from core.object_service.object_service import RemoteObjectService, create_object
+from core.data_object_store.data_object_store import *
 from yahoo_fin.stock_info import get_live_price
+
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 
 class Function(str, Enum):
@@ -67,7 +71,8 @@ class MarketDataService:
                 status=data[6]
             )
 
-            instrument_list.append(instrument)
+            if len(instrument.get_attribute("name")) <= 40:
+                instrument_list.append(instrument)
 
         return instrument_list
 
@@ -82,20 +87,35 @@ class MarketDataService:
     def get_price(instrument: Instrument):
         return get_live_price(instrument.id)
 
-    def get_listing(self, instrument: Instrument):
+    def create_listing_from_instrument(self, instrument: Instrument):
+        try:
+            price = self.get_price(instrument)
+            return create_object(
+                object_type="LISTING",
+                instrument_id=instrument.id,
+                date=datetime.now().strftime("%Y-%m-%d"),
+                price=price
+            )
 
-        return create_object(
-            object_type="LISTING",
-            instrument_id=instrument.id,
-            date=datetime.date.today().strftime("%Y-%m-%d"),
-            time=datetime.datetime.now().strftime("%H"),
-            price=self.get_price(instrument)
-        )
+        except Exception as e:
+            logger.info(f"{e}")
 
-    def get_listings(self, instrument_list: list[Instrument]):
+        finally:
+            pass
 
-        return [self.get_listing(instrument) for instrument in instrument_list]
+    @staticmethod
+    def sync_listing(listing):
+        with RemoteObjectService() as roj:
+            roj.persist_object(listing)
 
+    def sync_listings(self):
+        with RemoteObjectService() as roj:
+            instruments = roj.get_object("INSTRUMENT", filter_expression=Instrument.status == "Active")
+
+        for instrument in instruments:
+            if instrument.get_attribute("asset_type") == "Stock":
+                listing = self.create_listing_from_instrument(instrument)
+                self.sync_listing([listing])
 
 
 

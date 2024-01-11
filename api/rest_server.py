@@ -106,51 +106,6 @@ def create_portfolio(name: str, user_id: str) -> dict:
     return new_portfolio.to_json()
 
 
-@app.get("/tradingsession")
-def load_trading_session(user_id: str) -> dict:
-    """
-    Gets trading session.
-    Args:
-        user_id: id of the user attached to the trading session.
-
-    Returns:
-        JSON representation of trading session.
-
-    """
-    try:
-        with RemoteObjectService() as roj:
-            trading_session = roj.get_object("TRADINGSESSION", filter_expression=TradingSession.user_id == user_id)
-
-    except Exception as e:
-        raise HTTPException(status_code=400, detail={"error": str(e)})
-
-    return trading_session.to_json()
-
-
-@app.post("/tradingsession/ceate")
-def create_trading_session(user_id: str, portfolio_id: str) -> dict:
-    """
-    Creates a new trading session.
-    Args:
-        user_id: id of the user.
-        portfolio_id: portfolio attached to the trading session.
-
-    Returns:
-        JSON representation of the trading session.
-    """
-    try:
-        trading_session = create_object("TRADING_SESSION")
-        trading_session.set_attribute(
-            user_id=user_id,
-            portfolio_id=portfolio_id
-        )
-
-    except Exception as e:
-        raise HTTPException(status_code=400, detail={"error": str(e)})
-
-    return trading_session.to_json()
-
-
 @app.get("/listing")
 def load_listings() -> dict:
     """

@@ -1,3 +1,5 @@
+from typing import Union
+
 from core.object_service.object_service import RemoteObjectService
 from core.data_object_store.data_object_store import *
 
@@ -7,7 +9,10 @@ class PositionService:
         pass
 
     @staticmethod
-    def _get_quantity(transaction_list: list[Transaction], instrument: Instrument):
+    def _get_quantity(transaction_list: Union[list[Transaction], Transaction], instrument: Instrument):
+
+        if not isinstance(transaction_list, list):
+            transaction_list = [transaction_list]
 
         quantities = [
             transaction.quantity for transaction in transaction_list
@@ -16,15 +21,23 @@ class PositionService:
 
         return sum(quantities)
 
-    def _aggregate_transactions(self, transaction_list: list[Transaction]):
+    def _aggregate_transactions(self, transaction_list: Union[list[Transaction], Transaction]):
+
+        if not isinstance(transaction_list, list):
+            transaction_list = [transaction_list]
 
         instrument_ids = list(set([transaction.instrument_id for transaction in transaction_list]))
-        with RemoteObjectService() as roj:
-            instuments = roj.get_object("INSTRUMENT", filter_expression=Instrument.id in instrument_ids)
 
-        position_dictionary = {
-            instrument: self._get_quantity(transaction_list, instrument) for instrument in instuments
-        }
+        with RemoteObjectService() as roj:
+            instruments = roj.get_object("INSTRUMENT", filter_expression=Instrument.id.in_(instrument_ids))
+
+            if isinstance(instruments, list):
+                position_dictionary = {}
+                for instrument in instruments:
+                    position_dictionary.update({instrument.id: self._get_quantity(transaction_list, instrument)})
+
+            else:
+                position_dictionary = {instruments.id: self._get_quantity(transaction_list, instruments)}
 
         return position_dictionary
 

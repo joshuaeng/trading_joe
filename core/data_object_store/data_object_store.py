@@ -50,6 +50,9 @@ class BaseDataObject(Base):
     def __repr__(self):
         return f"{self.__class__.__name__.upper()}('{self.id}')"
 
+    def as_list(self):
+        return [self]
+
 
 class User(BaseDataObject):
     __tablename__ = "user"

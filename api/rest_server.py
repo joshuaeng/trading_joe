@@ -4,6 +4,7 @@ from core.data_object_store.data_object_store import *
 from service.market_data_service.market_data_service import MarketDataService
 from service.position_service.position_service import PositionService
 from fastapi import FastAPI, HTTPException, Response
+from sqlalchemy.sql.expression import func
 import uvicorn
 
 
@@ -123,40 +124,6 @@ def load_listings() -> dict:
     return {listing.instrument_id: listing.to_json() for listing in listings}
 
 
-@app.post("/transaction/create")
-def create_transaction(listing_id: str, quantity: int, portfolio_id: str) -> None:
-    """
-    Creates a transaction.
-    Args:
-        listing_id: id of the listing.
-        quantity: quantity to transact. Negative when sold.
-        portfolio_id: id of the portfolio.
-
-    Returns:
-        JSON representation of the created transaction.
-    """
-    try:
-        with RemoteObjectService() as roj:
-            listing: Listing = roj.get_object("LISTING", filter_expression=Listing.id == listing_id)
-
-        transaction = create_object("TRANSACTION")
-
-        transaction.set_attribute(
-            instrument_id=listing.get_attribute("instrument_id"),
-            portfolio_id=portfolio_id,
-            quantity=quantity,
-            date=datetime.now().strftime("%Y-%m-%d"),
-            buy_price=listing.get_attribute("price")
-        )
-
-        with RemoteObjectService() as objs:
-
-            objs.persist_object([transaction])
-
-    except Exception as e:
-        raise HTTPException(status_code=400, detail={"error": str(e)})
-
-
 @app.post("/portfolio/evaluate")
 def evaluate_portfolio(portfolio_id: str) -> dict:
     """
@@ -176,6 +143,46 @@ def evaluate_portfolio(portfolio_id: str) -> dict:
         raise HTTPException(status_code=400, detail={"error": str(e)})
 
     return PositionService().evaluate_positions(portfolio)
+
+
+@app.post("/transaction/create")
+def create_transaction(ric: str, quantity: int, portfolio_id: str) -> None:
+    """
+    Creates a transaction.
+    Args:
+        ric: id of the listing.
+        quantity: quantity to transact. Negative when sold.
+        portfolio_id: id of the portfolio.
+
+    Returns:
+        JSON representation of the created transaction.
+    """
+
+    try:
+        portfolio = evaluate_portfolio(portfolio_id)
+        if quantity < 0 and portfolio[ric] < abs(quantity):
+            raise Exception("No enought stocks in portfolio.")
+
+        with RemoteObjectService() as roj:
+            listing = roj.get_object("LISTING", filter_expression=(
+                    Listing.instrument_id == ric).__and__(Listing.date == datetime.now().strftime("%Y-%m-%d")))
+
+        transaction = create_object("TRANSACTION")
+
+        transaction.set_attribute(
+            instrument_id=ric,
+            portfolio_id=portfolio_id,
+            quantity=quantity,
+            date=datetime.now().strftime("%Y-%m-%d"),
+            buy_price=listing.get_attribute("price")
+        )
+
+        with RemoteObjectService() as objs:
+
+            objs.persist_object([transaction])
+
+    except Exception as e:
+        raise HTTPException(status_code=400, detail={"error": str(e)})
 
 
 if __name__ == "__main__":

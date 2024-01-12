@@ -14,14 +14,13 @@ class RemoteObjectService:
         """
         self.dbc: DBConnector = DBConnector()
 
-    def get_object(self, object_type: str, filter_expression=None, result_to_list=False) -> Union[list[BaseDataObject], BaseDataObject]:
+    def get_object(self, object_type: str, filter_expression=None) -> Union[list[BaseDataObject], BaseDataObject]:
         """Gets list of all objects of a specified type, complying with the input filter expression.
            If filter expression is not specified, all the objects of the specified type are retreived.
 
         Args:
             object_type: type of the object to get from db.
             filter_expression: filter expression.
-            result_to_list: decides whether method should force a single
                 element output into a list.
 
         Returns:

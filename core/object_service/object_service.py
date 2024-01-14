@@ -13,7 +13,7 @@ class Response:
 
         self.len = len(self._query_result)
 
-    def export(self, force_to_list: bool = False):
+    def export(self, force_to_list: bool = False) -> Union[BaseDataObject, list[BaseDataObject]]:
         if force_to_list:
             return self._query_result
 

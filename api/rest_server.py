@@ -1,16 +1,12 @@
-from datetime import datetime
 from core.object_service.object_service import RemoteObjectService, create_object
 from core.data_object_store.data_object_store import *
-from service.market_data_service.market_data_service import MarketDataService
 from service.position_service.position_service import PositionService
-from fastapi import FastAPI, HTTPException, Response
-from sqlalchemy.sql.expression import func
+from service.user_service.user_service import UserService
+from fastapi import FastAPI, HTTPException
 import uvicorn
 
 
 app = FastAPI(title="TradingJoe", docs_url="/")
-
-# TODO: Update endpoint for trading session, the linked portfolio should be changable
 
 
 @app.get("/user")
@@ -25,13 +21,7 @@ def load_user(username: str, password: str) -> dict:
         JSON representation of user.
     """
     try:
-        with RemoteObjectService() as roj:
-            resp = roj.get_object(
-                object_type="USER",
-                filter_expression=(User.id == username).__and__(User.password == password)
-            )
-
-            user = resp.export(force_to_list=True)
+        user = UserService.load_user(username, password)
 
     except Exception as e:
         raise HTTPException(status_code=400, detail={"error": str(e)})
@@ -51,16 +41,13 @@ def create_user(username: str, password: str) -> dict:
         JSON representation of new user.
 
     """
-    new_user = create_object("USER", username=username, password=password)
-
     try:
-        with RemoteObjectService() as roj:
-            roj.persist_object(obj_list=[new_user])
+        user = UserService.create_user(username, password)
 
     except Exception as e:
         raise HTTPException(status_code=400, detail={"error": str(e)})
 
-    return new_user.to_json()
+    return user.to_json()
 
 
 @app.get("/portfolio")

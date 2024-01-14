@@ -50,16 +50,13 @@ class BaseDataObject(Base):
     def __repr__(self):
         return f"{self.__class__.__name__.upper()}('{self.id}')"
 
-    def as_list(self):
-        return [self]
-
 
 class User(BaseDataObject):
     __tablename__ = "user"
 
     id = mapped_column(ForeignKey("baseobject.id"), primary_key=True)
 
-    name = mapped_column("name", String(50))
+    password = mapped_column("password", String(50))
 
     __mapper_args__ = {
         "polymorphic_identity": "user",
@@ -67,15 +64,15 @@ class User(BaseDataObject):
 
     def __init__(
             self,
-            user_id: str = None,
-            name: str = None
+            username: str = None,
+            password: str = None
     ):
 
         super().__init__()
 
-        self.id = get_uuid() if user_id is None else user_id
+        self.id = username
 
-        self.name = name
+        self.password = password
 
 
 class Instrument(BaseDataObject):

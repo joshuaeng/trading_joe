@@ -14,18 +14,24 @@ app = FastAPI(title="TradingJoe", docs_url="/")
 
 
 @app.get("/user")
-def load_user(user_name: str) -> dict:
+def load_user(username: str, password: str) -> dict:
     """
     Gets user.
     Args:
-        user_name: name of the user.
+        username: name of the user.
+        password: password of the userr
 
     Returns:
         JSON representation of user.
     """
     try:
         with RemoteObjectService() as roj:
-            user = roj.get_object("USER", filter_expression=User.name == user_name)
+            resp = roj.get_object(
+                object_type="USER",
+                filter_expression=(User.id == username).__and__(User.password == password)
+            )
+
+            user = resp.export(force_to_list=True)
 
     except Exception as e:
         raise HTTPException(status_code=400, detail={"error": str(e)})
@@ -34,17 +40,18 @@ def load_user(user_name: str) -> dict:
 
 
 @app.post(path="/user/create")
-def create_user(user_name: str) -> dict:
+def create_user(username: str, password: str) -> dict:
     """
     Creates new user.
     Args:
-        user_name: name of the new user.
+        username: name of the new user.
+        password: password of the new user.
 
     Returns:
         JSON representation of new user.
 
     """
-    new_user = create_object("USER", name=user_name)
+    new_user = create_object("USER", username=username, password=password)
 
     try:
         with RemoteObjectService() as roj:
@@ -68,13 +75,11 @@ def load_portfolios(user_id: str) -> dict:
     """
     try:
         with RemoteObjectService() as roj:
-            portfolio_list = roj.get_object("PORTFOLIO", Portfolio.user_id == user_id)
+            resp = roj.get_object("PORTFOLIO", Portfolio.user_id == user_id)
+            portfolio_list = resp.export(force_to_list=True)
 
     except Exception as e:
         raise HTTPException(status_code=400, detail={"error": str(e)})
-
-    if not isinstance(portfolio_list, list):
-        portfolio_list = [portfolio_list]
 
     return {portfolio.get_attribute("name"): portfolio.to_json() for portfolio in portfolio_list}
 
@@ -116,7 +121,8 @@ def load_listings() -> dict:
     """
     try:
         with RemoteObjectService() as roj:
-            listings = roj.get_object("LISTING", filter_expression=Listing.date == datetime.now().strftime("%Y-%m-%d"))
+            resp = roj.get_object("LISTING", filter_expression=Listing.date == datetime.now().strftime("%Y-%m-%d"))
+            listings = resp.export(force_to_list=True)
 
     except Exception as e:
         raise HTTPException(status_code=400, detail={"error": str(e)})
@@ -137,7 +143,8 @@ def evaluate_portfolio(portfolio_id: str) -> dict:
     """
     try:
         with RemoteObjectService() as roj:
-            portfolio = roj.get_object("PORTFOLIO", filter_expression=Portfolio.id == portfolio_id)
+            resp = roj.get_object("PORTFOLIO", filter_expression=Portfolio.id == portfolio_id)
+            portfolio = resp.export()
 
     except Exception as e:
         raise HTTPException(status_code=400, detail={"error": str(e)})
@@ -160,8 +167,9 @@ def create_transaction(ric: str, quantity: int, portfolio_id: str) -> None:
 
     try:
         with RemoteObjectService() as roj:
-            listing = roj.get_object("LISTING", filter_expression=(
+            resp = roj.get_object("LISTING", filter_expression=(
                     Listing.instrument_id == ric).__and__(Listing.date == datetime.now().strftime("%Y-%m-%d")))
+            listing = resp.export()
 
             transaction = create_object(
                 "TRANSACTION",

@@ -103,7 +103,11 @@ class MarketDataService:
 
     def sync_listings(self):
         with RemoteObjectService() as roj:
-            instruments = roj.get_object("INSTRUMENT", filter_expression=Instrument.status == "Active")
+            resp = roj.get_object("INSTRUMENT", filter_expression=Instrument.status == "Active")
+            instruments = resp.export(force_to_list=True)
+
+        if not instruments:
+            raise Exception("No instruments in DB.")
 
         for instrument in instruments:
             if instrument.get_attribute("asset_type") == "Stock":

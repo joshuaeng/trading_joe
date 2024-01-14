@@ -189,7 +189,7 @@ class Transaction(BaseDataObject):
 
     quantity = mapped_column("quantity", Integer)
 
-    buy_price = mapped_column("buy_price", Float)
+    price = mapped_column("price", Float)
 
     date = mapped_column("date", Date)
 
@@ -202,7 +202,9 @@ class Transaction(BaseDataObject):
             transaction_id: str = None,
             instrument_id: str = None,
             portfolio_id: str = None,
-            quantity: int = None
+            quantity: int = None,
+            price: float = None,
+            date: str = None
     ):
 
         super().__init__()
@@ -213,7 +215,11 @@ class Transaction(BaseDataObject):
 
         self.portfolio_id = portfolio_id
 
+        self.date = date
+
         self.quantity = quantity
+
+        self.price = price
 
 
 object_list = [_obj for _obj in BaseDataObject.__subclasses__()]

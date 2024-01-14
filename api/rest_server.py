@@ -116,7 +116,7 @@ def load_listings() -> dict:
     """
     try:
         with RemoteObjectService() as roj:
-            listings = roj.get_object("LISTING")
+            listings = roj.get_object("LISTING", filter_expression=Listing.date == datetime.now().strftime("%Y-%m-%d"))
 
     except Exception as e:
         raise HTTPException(status_code=400, detail={"error": str(e)})
@@ -159,27 +159,20 @@ def create_transaction(ric: str, quantity: int, portfolio_id: str) -> None:
     """
 
     try:
-        portfolio = evaluate_portfolio(portfolio_id)
-        if quantity < 0 and portfolio[ric] < abs(quantity):
-            raise Exception("No enought stocks in portfolio.")
-
         with RemoteObjectService() as roj:
             listing = roj.get_object("LISTING", filter_expression=(
                     Listing.instrument_id == ric).__and__(Listing.date == datetime.now().strftime("%Y-%m-%d")))
 
-        transaction = create_object("TRANSACTION")
+            transaction = create_object(
+                "TRANSACTION",
+                instrument_id=ric,
+                portfolio_id=portfolio_id,
+                quantity=quantity,
+                date=datetime.now().strftime("%Y-%m-%d"),
+                price=listing.get_attribute("price")
+            )
 
-        transaction.set_attribute(
-            instrument_id=ric,
-            portfolio_id=portfolio_id,
-            quantity=quantity,
-            date=datetime.now().strftime("%Y-%m-%d"),
-            buy_price=listing.get_attribute("price")
-        )
-
-        with RemoteObjectService() as objs:
-
-            objs.persist_object([transaction])
+            roj.persist_object([transaction])
 
     except Exception as e:
         raise HTTPException(status_code=400, detail={"error": str(e)})

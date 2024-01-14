@@ -140,7 +140,7 @@ def evaluate_portfolio(portfolio_id: str) -> dict:
 
 
 @app.post("/transaction/create")
-def create_transaction(ric: str, quantity: int, portfolio_id: str) -> None:
+def create_transaction(ric: str, quantity: int, portfolio_id: str) -> str:
     """
     Creates a transaction.
     Args:
@@ -171,6 +171,8 @@ def create_transaction(ric: str, quantity: int, portfolio_id: str) -> None:
 
     except Exception as e:
         raise HTTPException(status_code=400, detail={"error": str(e)})
+
+    return "Transaction created"
 
 
 if __name__ == "__main__":

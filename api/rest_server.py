@@ -178,9 +178,6 @@ def post_transaction(ric: str, quantity: int, portfolio_id: str) -> str:
     return "Transaction created"
 
 
-if __name__ == "__main__":
-    uvicorn.run(app)
-
 
 
 

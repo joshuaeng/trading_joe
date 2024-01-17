@@ -1,16 +1,19 @@
+from typing import Callable
+
 from core.object_service.object_service import RemoteObjectService, create_object
 from core.data_object_store.data_object_store import *
 from service.position_service.position_service import evaluate_positions
 from service.user_service.user_service import load_user, create_user
 from fastapi import FastAPI, HTTPException
 import uvicorn
+from datetime import datetime, timedelta
 
 
 app = FastAPI(title="TradingJoe", docs_url="/")
 
 
 @app.get("/user")
-def load_user(username: str, password: str) -> dict:
+def get_user(username: str, password: str) -> dict:
     """
     Gets user.
     Args:
@@ -30,7 +33,7 @@ def load_user(username: str, password: str) -> dict:
 
 
 @app.post(path="/user/create")
-def create_user(username: str, password: str) -> dict:
+def post_user(username: str, password: str) -> dict:
     """
     Creates new user.
     Args:
@@ -51,7 +54,7 @@ def create_user(username: str, password: str) -> dict:
 
 
 @app.get("/portfolio")
-def load_portfolios(user_id: str) -> dict:
+def get_portfolios(user_id: str) -> dict:
     """
     Loads all portfolios linked to the user.
     Args:
@@ -72,7 +75,7 @@ def load_portfolios(user_id: str) -> dict:
 
 
 @app.post("/portfolio/create")
-def create_portfolio(name: str, user_id: str) -> dict:
+def post_portfolio(name: str, user_id: str) -> dict:
     """
     Creates new portfolio
     Args:
@@ -100,7 +103,7 @@ def create_portfolio(name: str, user_id: str) -> dict:
 
 
 @app.get("/listing")
-def load_listings() -> dict:
+def get_listings() -> dict:
     """
     Gets all listings.
     Returns:
@@ -140,7 +143,7 @@ def evaluate_portfolio(portfolio_id: str) -> dict:
 
 
 @app.post("/transaction/create")
-def create_transaction(ric: str, quantity: int, portfolio_id: str) -> str:
+def post_transaction(ric: str, quantity: int, portfolio_id: str) -> str:
     """
     Creates a transaction.
     Args:

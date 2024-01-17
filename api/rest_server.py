@@ -1,7 +1,7 @@
 from core.object_service.object_service import RemoteObjectService, create_object
 from core.data_object_store.data_object_store import *
-from service.position_service.position_service import PositionService
-from service.user_service.user_service import UserService
+from service.position_service.position_service import evaluate_positions
+from service.user_service.user_service import load_user, create_user
 from fastapi import FastAPI, HTTPException
 import uvicorn
 
@@ -21,7 +21,7 @@ def load_user(username: str, password: str) -> dict:
         JSON representation of user.
     """
     try:
-        user = UserService.load_user(username, password)
+        user = load_user(username, password)
 
     except Exception as e:
         raise HTTPException(status_code=400, detail={"error": str(e)})
@@ -42,7 +42,7 @@ def create_user(username: str, password: str) -> dict:
 
     """
     try:
-        user = UserService.create_user(username, password)
+        user = create_user(username, password)
 
     except Exception as e:
         raise HTTPException(status_code=400, detail={"error": str(e)})
@@ -136,7 +136,7 @@ def evaluate_portfolio(portfolio_id: str) -> dict:
     except Exception as e:
         raise HTTPException(status_code=400, detail={"error": str(e)})
 
-    return PositionService().evaluate_positions(portfolio)
+    return evaluate_positions(portfolio)
 
 
 @app.post("/transaction/create")

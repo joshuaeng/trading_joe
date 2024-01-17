@@ -6,6 +6,22 @@ from loguru import logger
 StrToObjectMap = {_object.__tablename__.upper(): _object for _object in object_list}
 
 
+class Response:
+    def __init__(self, query_result: list[BaseDataObject]):
+
+        self._query_result = query_result
+
+        self.len = len(self._query_result)
+
+    def export(self, force_to_list: bool = False) -> Union[BaseDataObject, list[BaseDataObject]]:
+        if force_to_list:
+            return self._query_result
+
+        else:
+            return self._query_result[0] \
+                if self.len == 1 else self._query_result
+
+
 class RemoteObjectService:
     def __init__(self):
         """Allows to instanciate an object of type RemoteObjectService.
@@ -14,14 +30,13 @@ class RemoteObjectService:
         """
         self.dbc: DBConnector = DBConnector()
 
-    def get_object(self, object_type: str, filter_expression=None, result_to_list=False) -> Union[list[BaseDataObject], BaseDataObject]:
+    def get_object(self, object_type: str, filter_expression=None) -> Response:
         """Gets list of all objects of a specified type, complying with the input filter expression.
            If filter expression is not specified, all the objects of the specified type are retreived.
 
         Args:
             object_type: type of the object to get from db.
             filter_expression: filter expression.
-            result_to_list: decides whether method should force a single
                 element output into a list.
 
         Returns:
@@ -39,10 +54,7 @@ class RemoteObjectService:
             if filter_expression is None \
             else self.dbc.orm_session.query(cls).filter(filter_expression).all()
 
-        if not result:
-            raise Exception(f"Query returned an empty array.")
-
-        return result[0] if len(result) == 1 else result
+        return Response(query_result=result)
 
     def persist_object(self, obj_list: list[BaseDataObject]) -> None:
         """Persists all objects from the input object list into the database.

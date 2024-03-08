@@ -2,6 +2,14 @@ from core.object_service.object_service import RemoteObjectService, create_objec
 from core.data_object_store.data_object_store import User
 
 
+def load_user_from_id(user_id: str):
+    with RemoteObjectService() as roj:
+        resp = roj.get_object("USER", user_id)
+        user = resp.extract_object()
+
+    return user
+
+
 def create_user(username: str, password: str) -> User:
     """
     Creates new user.
@@ -41,5 +49,5 @@ def load_user(username: str, password: str) -> User:
             filter_expression=(User.id == username).__and__(User.password == crypted_password)
         )
 
-    return resp.export()
+    return resp.extract_object()
 

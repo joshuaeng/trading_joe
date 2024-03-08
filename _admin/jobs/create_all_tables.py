@@ -19,3 +19,4 @@ for table in table_list:
     except Exception as e:
         loguru.logger.info(f"Cannot create tabe {table.__str__()}. Reason: {e}.")
 
+engine.dispose()

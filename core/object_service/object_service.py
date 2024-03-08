@@ -1,19 +1,21 @@
 from core.database_service.db_connector import DBConnector
 from core.data_object_store.data_object_store import BaseDataObject, object_list
-from typing import Union
+from typing import Union, Any
 from loguru import logger
 
 StrToObjectMap = {_object.__tablename__.upper(): _object for _object in object_list}
 
 
-class Response:
-    def __init__(self, query_result: list[BaseDataObject]):
+class _Response:
+    """Response class. allow to instantiate a Response object."""
+    def __init__(self, query_result: Union[Any, list[Any]]) -> None:
 
         self._query_result = query_result
 
         self.len = len(self._query_result)
 
-    def export(self, force_to_list: bool = False) -> Union[BaseDataObject, list[BaseDataObject]]:
+    def extract_object(self, force_to_list: bool = False) -> Union[Any, list[Any]]:
+        """Returns tarrget object or object list."""
         if force_to_list:
             return self._query_result
 
@@ -30,7 +32,7 @@ class RemoteObjectService:
         """
         self.dbc: DBConnector = DBConnector()
 
-    def get_object(self, object_type: str, filter_expression=None) -> Response:
+    def get_object(self, object_type: str, filter_expression=None) -> _Response:
         """Gets list of all objects of a specified type, complying with the input filter expression.
            If filter expression is not specified, all the objects of the specified type are retreived.
 
@@ -54,7 +56,7 @@ class RemoteObjectService:
             if filter_expression is None \
             else self.dbc.orm_session.query(cls).filter(filter_expression).all()
 
-        return Response(query_result=result)
+        return _Response(query_result=result)
 
     def persist_object(self, obj_list: list[BaseDataObject]) -> None:
         """Persists all objects from the input object list into the database.
@@ -105,7 +107,7 @@ class RemoteObjectService:
         self.dbc.close()
 
 
-def create_object(object_type: str, **kwargs) -> BaseDataObject:
+def create_object(object_type: str, **kwargs) -> Any:
     """Object factory.
 
     Args:

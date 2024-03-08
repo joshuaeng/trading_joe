@@ -2,6 +2,7 @@ from sqlalchemy import Integer, String, Float, ForeignKey, Date
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from datetime import datetime
 from utils.utils import get_uuid
+from typing import TypeVar
 
 
 class Base(DeclarativeBase):
@@ -197,26 +198,20 @@ class Transaction(BaseDataObject):
     def __init__(
             self,
             transaction_id: str = None,
-            instrument_id: str = None,
-            portfolio_id: str = None,
+            listing: str = None,
             quantity: int = None,
-            price: float = None,
-            date: str = None
+            portfolio_id: str = None
     ):
 
         super().__init__()
 
         self.id = get_uuid() if transaction_id is None else transaction_id
 
-        self.instrument_id = instrument_id
+        self.listing = listing
 
         self.portfolio_id = portfolio_id
 
-        self.date = date
-
         self.quantity = quantity
-
-        self.price = price
 
 
 object_list = [_obj for _obj in BaseDataObject.__subclasses__()]

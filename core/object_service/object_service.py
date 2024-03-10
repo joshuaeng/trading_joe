@@ -8,8 +8,8 @@ StrToObjectMap = {_object.__tablename__.upper(): _object for _object in object_l
 
 class _Response:
     """Response class. allow to instantiate a Response object."""
-    def __init__(self, query_result: Union[Any, list[Any]]) -> None:
 
+    def __init__(self, query_result: Union[Any, list[Any]]) -> None:
         self._query_result = query_result
 
         self.len = len(self._query_result)
@@ -20,8 +20,7 @@ class _Response:
             return self._query_result
 
         else:
-            return self._query_result[0] \
-                if self.len == 1 else self._query_result
+            return self._query_result[0] if self.len == 1 else self._query_result
 
 
 class RemoteObjectService:
@@ -52,9 +51,11 @@ class RemoteObjectService:
         """
         cls = StrToObjectMap[object_type]
 
-        result = self.dbc.orm_session.query(cls).all() \
-            if filter_expression is None \
+        result = (
+            self.dbc.orm_session.query(cls).all()
+            if filter_expression is None
             else self.dbc.orm_session.query(cls).filter(filter_expression).all()
+        )
 
         return _Response(query_result=result)
 
@@ -93,7 +94,6 @@ class RemoteObjectService:
                 roj.delete_object([..., ...])
         """
         for obj in obj_list:
-
             self.dbc.orm_session.delete(obj)
 
     def __enter__(self):

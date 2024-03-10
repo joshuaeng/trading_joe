@@ -12,7 +12,7 @@ def create_listing_from_instrument(instrument: Instrument):
     return listing
 
 
-def sync_listings():
+def main():
     instruments: list[Instrument] = load_all_instruments()
 
     if not instruments:
@@ -26,10 +26,6 @@ def sync_listings():
 
             except Exception as e:
                 logger.exception(f"{e}")
-
-
-def main():
-    sync_listings()
 
 
 if __name__ == "__main__":

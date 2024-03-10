@@ -1,8 +1,7 @@
 from sqlalchemy import Integer, String, Float, ForeignKey, Date
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import DeclarativeBase, mapped_column
 from datetime import datetime
 from utils.utils import get_uuid
-from typing import TypeVar
 
 
 class Base(DeclarativeBase):
@@ -16,16 +15,11 @@ class BaseDataObject(Base):
 
     type = mapped_column("type", String(50))
 
-    __mapper_args__ = {
-        "polymorphic_identity": "baseobject",
-        "polymorphic_on": "type"
-    }
+    __mapper_args__ = {"polymorphic_identity": "baseobject", "polymorphic_on": "type"}
 
     def set_attribute(self, **kwargs):
         for element in kwargs:
-
             if element not in self.fields:
-
                 raise Exception(
                     f"'{element.capitalize()}' is not an attribute of {self.__class__.__name__}. "
                     f"Attributes of {self.__class__.__name__} are: {self.fields}"
@@ -63,12 +57,7 @@ class User(BaseDataObject):
         "polymorphic_identity": "user",
     }
 
-    def __init__(
-            self,
-            username: str = None,
-            password: str = None
-    ):
-
+    def __init__(self, username: str = None, password: str = None):
         super().__init__()
 
         self.id = username
@@ -92,13 +81,12 @@ class Instrument(BaseDataObject):
     }
 
     def __init__(
-            self,
-            instrument_id: str = None,
-            name: str = None,
-            asset_type: str = None,
-            status: str = None
+        self,
+        instrument_id: str = None,
+        name: str = None,
+        asset_type: str = None,
+        status: str = None,
     ):
-
         super().__init__()
 
         self.id = instrument_id
@@ -126,14 +114,13 @@ class Listing(BaseDataObject):
     }
 
     def __init__(
-            self,
-            listing_id: str = None,
-            instrument_id: str = None,
-            date: datetime.date = None,
-            time: int = None,
-            price: float = None
+        self,
+        listing_id: str = None,
+        instrument_id: str = None,
+        date: datetime.date = None,
+        time: int = None,
+        price: float = None,
     ):
-
         super().__init__()
 
         self.id = get_uuid() if listing_id is None else listing_id
@@ -160,13 +147,7 @@ class Portfolio(BaseDataObject):
         "polymorphic_identity": "portfolio",
     }
 
-    def __init__(
-            self,
-            portflio_id: str = None,
-            name: str = None,
-            user_id: str = None
-    ):
-
+    def __init__(self, portflio_id: str = None, name: str = None, user_id: str = None):
         super().__init__()
 
         self.id = get_uuid() if portflio_id is None else portflio_id
@@ -196,13 +177,12 @@ class Transaction(BaseDataObject):
     }
 
     def __init__(
-            self,
-            transaction_id: str = None,
-            listing: str = None,
-            quantity: int = None,
-            portfolio_id: str = None
+        self,
+        transaction_id: str = None,
+        listing: str = None,
+        quantity: int = None,
+        portfolio_id: str = None,
     ):
-
         super().__init__()
 
         self.id = get_uuid() if transaction_id is None else transaction_id
@@ -217,22 +197,3 @@ class Transaction(BaseDataObject):
 object_list = [_obj for _obj in BaseDataObject.__subclasses__()]
 table_list = [BaseDataObject.__table__]
 table_list.extend([_obj.__table__ for _obj in object_list])
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

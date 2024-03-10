@@ -46,8 +46,9 @@ def load_user(username: str, password: str) -> User:
     with RemoteObjectService() as roj:
         resp = roj.get_object(
             object_type="USER",
-            filter_expression=(User.id == username).__and__(User.password == crypted_password)
+            filter_expression=(User.id == username).__and__(
+                User.password == crypted_password
+            ),
         )
 
     return resp.extract_object()
-

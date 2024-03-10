@@ -8,7 +8,7 @@ def create_listing(instrument: Instrument, price: float) -> Listing:
         object_type="LISTING",
         instrument_id=instrument.id,
         date=datetime.now().strftime("%Y-%m-%d"),
-        price=price
+        price=price,
     )
 
 
@@ -22,7 +22,9 @@ def load_listing(instrument: Instrument, date: datetime = None) -> Listing:
     with RemoteObjectService() as roj:
         resp = roj.get_object(
             "LISTING",
-            (Listing.instrument_id == instrument.id).__and__(Listing.date == date.strftime("%Y-%m-%d"))
+            (Listing.instrument_id == instrument.id).__and__(
+                Listing.date == date.strftime("%Y-%m-%d")
+            ),
         )
 
         return resp.extract_object()
@@ -33,5 +35,3 @@ def load_all_listings(date: datetime) -> list[Listing]:
         resp = roj.get_object("LISTING", Listing.date == date.strftime("%Y-%m-%d"))
 
     return resp.extract_object(force_to_list=True)
-
-

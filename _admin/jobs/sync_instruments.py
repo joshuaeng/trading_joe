@@ -2,17 +2,13 @@ from service.market_data_service.market_data_service import get_raw_instrument_d
 from service.instrument_service.instrument_service import create_instrument
 
 
-def create_all_instruments():
-
+def main():
     all_instruments_data = get_raw_instrument_data()
     instrument_list = []
 
     for ric, data in all_instruments_data.items():
         instrument = create_instrument(
-            instrument_id=ric,
-            name=data[1],
-            asset_type=data[3],
-            status=data[6]
+            instrument_id=ric, name=data[1], asset_type=data[3], status=data[6]
         )
 
         if len(instrument.get_attribute("name")) <= 40:
@@ -21,10 +17,5 @@ def create_all_instruments():
     return instrument_list
 
 
-def main():
-    create_all_instruments()
-
-
 if __name__ == "__main__":
     main()
-

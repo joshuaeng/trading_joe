@@ -1,14 +1,22 @@
-from core.data_object_store.data_object_store import *
 from service.listing_service.listing_service import load_listing, load_all_listings
-from service.instrument_service.instrument_service import load_all_instruments, load_instrument
-from service.portfolio_service.portfolio_service import load_user_portfolios, create_portfolio, load_portfolio_from_id
+from service.instrument_service.instrument_service import load_instrument
+from service.portfolio_service.portfolio_service import (
+    load_user_portfolios,
+    create_portfolio,
+    load_portfolio_from_id,
+)
 from service.user_service.user_service import load_user, create_user, load_user_from_id
-from service.transaction_service.transaction_service import create_transaction
+from service.transaction_service.transaction_service import create_transaction, load_transactions_from_portfolio
+from service.position_service.position_service import calculate_net_position
+
 from fastapi import FastAPI, HTTPException
 from datetime import datetime
 
 
-app = FastAPI(title="TradingJoe", docs_url="/", )
+app = FastAPI(
+    title="TradingJoe",
+    docs_url="/",
+)
 
 
 @app.get("/user")
@@ -69,7 +77,10 @@ def get_portfolios(user_id: str) -> dict:
     except Exception as e:
         raise HTTPException(status_code=400, detail={"error": str(e)})
 
-    return {portfolio.get_attribute("name"): portfolio.to_json() for portfolio in portfolio_list}
+    return {
+        portfolio.get_attribute("name"): portfolio.to_json()
+        for portfolio in portfolio_list
+    }
 
 
 @app.post("/portfolio/create")
@@ -94,7 +105,7 @@ def post_portfolio(name: str, user_id: str) -> dict:
 
 
 @app.get("/listing")
-def get_last_listings(date: str) -> dict:
+def get_listings(date: str) -> dict:
     """
     Gets all listings.
     Args:
@@ -113,7 +124,7 @@ def get_last_listings(date: str) -> dict:
 
 
 @app.post("/transaction/create")
-def post_transaction(ric: str, quantity: int, portfolio_id: str) -> str:
+def post_transaction(ric: str, quantity: int, portfolio_id: str) -> dict:
     """
     Creates a transaction.
     Args:
@@ -126,19 +137,28 @@ def post_transaction(ric: str, quantity: int, portfolio_id: str) -> str:
     """
 
     try:
-        instrument = load_instrument(ric)
-        listing = load_listing(instrument)
         portfolio = load_portfolio_from_id(portfolio_id)
+        old_transactions = load_transactions_from_portfolio(portfolio)
+        position_map = calculate_net_position(old_transactions)
+        expected_net_position_after_transaction = position_map[ric] + quantity
 
-        create_transaction(listing, quantity, portfolio)
+        if expected_net_position_after_transaction < 0:
+            raise Exception(f"Cannot short sell.")
+
+        else:
+            instrument = load_instrument(ric)
+            listing = load_listing(instrument)
+            create_transaction(listing, quantity, portfolio)
 
     except Exception as e:
         raise HTTPException(status_code=400, detail={"error": str(e)})
 
-    return "Transaction created"
-
-
-
-
-
-
+    return {
+        "transaction": {
+            "instrument": ric,
+            "quantity:": quantity,
+            "execution_price": listing.price,
+            "portfolio": portfolio.name,
+        },
+        "status": "booked"
+    }

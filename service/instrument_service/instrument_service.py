@@ -26,12 +26,14 @@ def load_instrument(instrument_id: str) -> Instrument:
 
 def load_all_instruments(active_only: bool = True) -> list[Instrument]:
     with RemoteObjectService() as roj:
-
-        resp \
-            = roj.get_object("INSTRUMENT", filter_expression=Instrument.status == "Active") \
-            if active_only else roj.get_object("INSTRUMENT")
+        resp = (
+            roj.get_object(
+                "INSTRUMENT", filter_expression=Instrument.status == "Active"
+            )
+            if active_only
+            else roj.get_object("INSTRUMENT")
+        )
 
         instrument_list = resp.extract_object(force_to_list=True)
 
     return instrument_list
-

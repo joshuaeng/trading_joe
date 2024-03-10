@@ -48,10 +48,7 @@ def create_portfolio(name: str, user: User) -> Portfolio:
     with RemoteObjectService() as roj:
         new_portfolio = create_object("PORTFOLIO")
 
-        new_portfolio.set_attribute(
-            user_id=user.id,
-            name=name
-        )
+        new_portfolio.set_attribute(user_id=user.id, name=name)
         roj.persist_object([new_portfolio])
 
     return new_portfolio

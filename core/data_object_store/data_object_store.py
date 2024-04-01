@@ -164,13 +164,9 @@ class Transaction(BaseDataObject):
 
     portfolio_id = mapped_column(String(50), ForeignKey("portfolio.id"))
 
-    instrument_id = mapped_column(String(50), ForeignKey("instrument.id"))
+    listing_id = mapped_column(String(50), ForeignKey("listing.id"))
 
     quantity = mapped_column("quantity", Integer)
-
-    price = mapped_column("price", Float)
-
-    date = mapped_column("date", Date)
 
     __mapper_args__ = {
         "polymorphic_identity": "transaction",
@@ -179,7 +175,8 @@ class Transaction(BaseDataObject):
     def __init__(
         self,
         transaction_id: str = None,
-        listing: str = None,
+        instrument_id: str = None,
+        listing_id: str = None,
         quantity: int = None,
         portfolio_id: str = None,
     ):
@@ -187,7 +184,9 @@ class Transaction(BaseDataObject):
 
         self.id = get_uuid() if transaction_id is None else transaction_id
 
-        self.listing = listing
+        self.instrument_id = instrument_id
+
+        self.listing_id = listing_id
 
         self.portfolio_id = portfolio_id
 

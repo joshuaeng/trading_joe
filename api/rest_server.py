@@ -114,7 +114,7 @@ def get_listings(date: str) -> dict:
         JSON representation of all listings.
     """
     try:
-        date = datetime.strptime(date, "YYYY-MM-DD")
+        date = datetime.strptime(date, "%Y-%m-%d")
         listings = load_all_listings(date)
 
     except Exception as e:
@@ -140,7 +140,8 @@ def post_transaction(ric: str, quantity: int, portfolio_id: str) -> dict:
         portfolio = load_portfolio_from_id(portfolio_id)
         old_transactions = load_transactions_from_portfolio(portfolio)
         position_map = calculate_net_position(old_transactions)
-        expected_net_position_after_transaction = position_map[ric] + quantity
+        expected_net_position_after_transaction \
+            = position_map[ric] + quantity if ric in position_map.keys() else quantity
 
         if expected_net_position_after_transaction < 0:
             raise Exception(f"Cannot short sell.")
@@ -162,3 +163,13 @@ def post_transaction(ric: str, quantity: int, portfolio_id: str) -> dict:
         },
         "status": "booked"
     }
+
+
+@app.get("/composition")
+def get_composition(portfolio_id: str) -> dict:
+    """Evaluates portfolio"""
+    portfolio = load_portfolio_from_id(portfolio_id)
+    old_transactions = load_transactions_from_portfolio(portfolio)
+    position_map = calculate_net_position(old_transactions)
+
+    return position_map

@@ -19,8 +19,11 @@ class _Response:
         if force_to_list:
             return self._query_result
 
-        else:
+        elif not force_to_list:
             return self._query_result[0] if self.len == 1 else self._query_result
+
+        else:
+            raise Exception("No object to extract.")
 
 
 class RemoteObjectService:

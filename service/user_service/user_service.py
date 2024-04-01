@@ -4,7 +4,7 @@ from core.data_object_store.data_object_store import User
 
 def load_user_from_id(user_id: str):
     with RemoteObjectService() as roj:
-        resp = roj.get_object("USER", user_id)
+        resp = roj.get_object("USER", User.id == user_id)
         user = resp.extract_object()
 
     return user

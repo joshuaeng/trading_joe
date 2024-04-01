@@ -13,7 +13,7 @@ def load_portfolio_from_id(portfolio_id: str) -> Portfolio:
 
     """
     with RemoteObjectService() as roj:
-        resp = roj.get_object(portfolio_id)
+        resp = roj.get_object("PORTFOLIO", Portfolio.id == portfolio_id)
         portfolio = resp.extract_object()
 
     return portfolio

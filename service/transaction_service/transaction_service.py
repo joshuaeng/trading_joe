@@ -17,6 +17,7 @@ def create_transaction(listing: Listing, quantity: int, portfolio: Portfolio) ->
     with RemoteObjectService() as roj:
         transaction = create_object(
             "TRANSACTION",
+            instrument_id=listing.instrument_id,
             listing_id=listing.id,
             portfolio_id=portfolio.id,
             quantity=quantity,

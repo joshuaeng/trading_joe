@@ -5,7 +5,6 @@ from enum import Enum
 
 
 class ConnectionStatus(Enum):
-
     CONNECTED = 1
 
     DISCONNECTED = 2
@@ -28,7 +27,9 @@ class DBConnector:
         self.connection_status = ConnectionStatus.DISCONNECTED
 
     def connect(self):
-        session = sessionmaker(bind=self.engine, expire_on_commit=False, autoflush=False)
+        session = sessionmaker(
+            bind=self.engine, expire_on_commit=False, autoflush=False
+        )
         self.orm_session: sqlalchemy.orm.session = session()
 
         self.connection_status = ConnectionStatus.CONNECTED
@@ -41,7 +42,3 @@ class DBConnector:
 
     def commit(self):
         self.orm_session.commit()
-
-
-
-

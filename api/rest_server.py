@@ -1,15 +1,22 @@
-from typing import Callable
+from service.listing_service.listing_service import load_listing, load_all_listings
+from service.instrument_service.instrument_service import load_instrument
+from service.portfolio_service.portfolio_service import (
+    load_user_portfolios,
+    create_portfolio,
+    load_portfolio_from_id,
+)
+from service.user_service.user_service import load_user, create_user, load_user_from_id
+from service.transaction_service.transaction_service import create_transaction, load_transactions_from_portfolio
+from service.position_service.position_service import calculate_net_position
 
-from core.object_service.object_service import RemoteObjectService, create_object
-from core.data_object_store.data_object_store import *
-from service.position_service.position_service import evaluate_positions
-from service.user_service.user_service import load_user, create_user
 from fastapi import FastAPI, HTTPException
-import uvicorn
-from datetime import datetime, timedelta
+from datetime import datetime
 
 
-app = FastAPI(title="TradingJoe", docs_url="/")
+app = FastAPI(
+    title="TradingJoe",
+    docs_url="/",
+)
 
 
 @app.get("/user")
@@ -64,14 +71,16 @@ def get_portfolios(user_id: str) -> dict:
         JSON representation of the linked portfolios.
     """
     try:
-        with RemoteObjectService() as roj:
-            resp = roj.get_object("PORTFOLIO", Portfolio.user_id == user_id)
-            portfolio_list = resp.export(force_to_list=True)
+        user = load_user_from_id(user_id)
+        portfolio_list = load_user_portfolios(user)
 
     except Exception as e:
         raise HTTPException(status_code=400, detail={"error": str(e)})
 
-    return {portfolio.get_attribute("name"): portfolio.to_json() for portfolio in portfolio_list}
+    return {
+        portfolio.get_attribute("name"): portfolio.to_json()
+        for portfolio in portfolio_list
+    }
 
 
 @app.post("/portfolio/create")
@@ -86,15 +95,8 @@ def post_portfolio(name: str, user_id: str) -> dict:
         JSON representation of the new portfolio.
     """
     try:
-        new_portfolio = create_object("PORTFOLIO")
-
-        new_portfolio.set_attribute(
-            user_id=user_id,
-            name=name
-        )
-
-        with RemoteObjectService() as roj:
-            roj.persist_object([new_portfolio])
+        user = load_user_from_id(user_id)
+        new_portfolio = create_portfolio(name, user)
 
     except Exception as e:
         raise HTTPException(status_code=400, detail={"error": str(e)})
@@ -103,16 +105,17 @@ def post_portfolio(name: str, user_id: str) -> dict:
 
 
 @app.get("/listing")
-def get_listings() -> dict:
+def get_listings(date: str) -> dict:
     """
     Gets all listings.
+    Args:
+        date: date in "YYYY-MM-DD" format.
     Returns:
         JSON representation of all listings.
     """
     try:
-        with RemoteObjectService() as roj:
-            resp = roj.get_object("LISTING", filter_expression=Listing.date == datetime.now().strftime("%Y-%m-%d"))
-            listings = resp.export(force_to_list=True)
+        date = datetime.strptime(date, "%Y-%m-%d")
+        listings = load_all_listings(date)
 
     except Exception as e:
         raise HTTPException(status_code=400, detail={"error": str(e)})
@@ -120,30 +123,8 @@ def get_listings() -> dict:
     return {listing.instrument_id: listing.to_json() for listing in listings}
 
 
-@app.post("/portfolio/evaluate")
-def evaluate_portfolio(portfolio_id: str) -> dict:
-    """
-    Evaluates the positions in a portfolio
-    Args:
-        portfolio_id: id of the portfolio.
-
-    Returns:
-        JSON with keys -> instrument_id and value -> quantity (int)
-
-    """
-    try:
-        with RemoteObjectService() as roj:
-            resp = roj.get_object("PORTFOLIO", filter_expression=Portfolio.id == portfolio_id)
-            portfolio = resp.export()
-
-    except Exception as e:
-        raise HTTPException(status_code=400, detail={"error": str(e)})
-
-    return evaluate_positions(portfolio)
-
-
 @app.post("/transaction/create")
-def post_transaction(ric: str, quantity: int, portfolio_id: str) -> str:
+def post_transaction(ric: str, quantity: int, portfolio_id: str) -> dict:
     """
     Creates a transaction.
     Args:
@@ -156,34 +137,39 @@ def post_transaction(ric: str, quantity: int, portfolio_id: str) -> str:
     """
 
     try:
-        with RemoteObjectService() as roj:
-            resp = roj.get_object("LISTING", filter_expression=(
-                    Listing.instrument_id == ric).__and__(Listing.date == datetime.now().strftime("%Y-%m-%d")))
-            listing = resp.export()
+        portfolio = load_portfolio_from_id(portfolio_id)
+        old_transactions = load_transactions_from_portfolio(portfolio)
+        position_map = calculate_net_position(old_transactions)
+        expected_net_position_after_transaction \
+            = position_map[ric] + quantity if ric in position_map.keys() else quantity
 
-            transaction = create_object(
-                "TRANSACTION",
-                instrument_id=ric,
-                portfolio_id=portfolio_id,
-                quantity=quantity,
-                date=datetime.now().strftime("%Y-%m-%d"),
-                price=listing.get_attribute("price")
-            )
+        if expected_net_position_after_transaction < 0:
+            raise Exception(f"Cannot short sell.")
 
-            roj.persist_object([transaction])
+        else:
+            instrument = load_instrument(ric)
+            listing = load_listing(instrument)
+            create_transaction(listing, quantity, portfolio)
 
     except Exception as e:
         raise HTTPException(status_code=400, detail={"error": str(e)})
 
-    return "Transaction created"
+    return {
+        "transaction": {
+            "instrument": ric,
+            "quantity:": quantity,
+            "execution_price": listing.price,
+            "portfolio": portfolio.name,
+        },
+        "status": "booked"
+    }
 
 
-if __name__ == "__main__":
-    uvicorn.run(app)
+@app.get("/composition")
+def get_composition(portfolio_id: str) -> dict:
+    """Evaluates portfolio"""
+    portfolio = load_portfolio_from_id(portfolio_id)
+    old_transactions = load_transactions_from_portfolio(portfolio)
+    position_map = calculate_net_position(old_transactions)
 
-
-
-
-
-
-
+    return position_map

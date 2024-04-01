@@ -1,14 +1,10 @@
+from api.rest_server import app
 import uvicorn
-from fastapi import FastAPI
-import uvicorn
 
 
-app = FastAPI()
+def main():
+    uvicorn.run(app)
 
 
-@app.get("/fdp")
-def fils_de_pute():
-    return {"response": "Fils de pute."}
-
-
-uvicorn.run(app)
+if __name__ == "__main__":
+    main()
